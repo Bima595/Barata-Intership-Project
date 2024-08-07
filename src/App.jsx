@@ -1,12 +1,14 @@
-import Navbar from './components/Navbar';
-import HomePage from './pages/HomePage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AdminPage from './pages/AdminPage';  // Sesuaikan path ini sesuai dengan struktur folder Anda
+
 
 const App = () => {
   return (
-    <div>
-      <Navbar />
-      <HomePage />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </Router>
   );
 };
 
