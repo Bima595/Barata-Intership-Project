@@ -96,7 +96,7 @@ const DeviceKantor = () => {
                 </select>
               </th>
               <th className="p-2">
-                <select s
+                <select 
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded"
