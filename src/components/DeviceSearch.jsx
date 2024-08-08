@@ -6,38 +6,125 @@ const DeviceDetails = ({ device }) => {
 
   return (
     <Box display="flex" alignItems="center" mb={5} p={3}>
-      <img src={foto} alt="Device" style={{ maxWidth: '800px', marginRight: '20px' }} />
-      <Box position="relative" ml={5}>
-        <Typography variant="h6" component="div" gutterBottom>
-          {nama}
-        </Typography>
-        <Box position="absolute" left="100%" top="50%" height="1px" width="50px" bgcolor="grey.300"></Box>
-        <Box mt={3}>
-          {[
-            { label: 'Nomor Aset', value: nomor_aset },
-            { label: 'Jenis', value: jenis },
-            { label: 'Nama', value: nama },
-            { label: 'OS', value: os },
-            { label: 'Manufaktur', value: manufaktur },
-            { label: 'Model', value: model },
-            { label: 'Serial Number', value: serial_number },
-            { label: 'Garansi', value: garansi.toDateString() },
-            { label: 'Status', value: status },
-            { label: 'RAM', value: `${ram} GB` },
-            { label: 'Harddisk', value: `${harddisk} GB` },
-            { label: 'Prosesor', value: prosesor },
-            { label: 'Tahun Pembelian', value: thn_pembelian.toDateString() },
-            { label: 'Nilai Pembelian', value: nilai_pembelian },
-            { label: 'MAC', value: mac },
-          ].map((detail, index) => (
-            <Box key={index} display="flex" alignItems="center" mb={2} position="relative">
-              <Box position="absolute" left="-25px" width="1px" height="20px" bgcolor="grey.300"></Box>
-              <Box position="absolute" left="-25px" bottom="50%" width="25px" height="1px" bgcolor="Black"></Box>
+      <Box position="relative" display="flex" alignItems="center">
+        <img src={foto} alt="Device" style={{ maxWidth: '800px', marginRight: '20px' }} />
+        
+        {/* Curly bracket line */}
+        <Box
+          position="absolute"
+          left="50%"
+          top="0"
+          height="100%"
+          width="1px"
+          bgcolor="grey.300"
+          style={{ transform: 'translateX(-10%)' }}
+        >
+          <Box
+            position="absolute"
+            left="50%"
+            top="30px"
+            width="0"
+            height="0"
+            borderLeft="15px solid transparent"
+            borderRight="15px solid transparent"
+            borderBottom="15px solid grey.300"
+            style={{ transform: 'translateX(-10%)' }}
+          />
+          <Box
+            position="absolute"
+            left="50%"
+            bottom="30px"
+            width="0"
+            height="0"
+            borderLeft="15px solid transparent"
+            borderRight="15px solid transparent"
+            borderTop="15px solid grey.300"
+            style={{ transform: 'translateX(-10%)' }}
+          />
+        </Box>
+
+        <Box ml={5} position="relative">
+          <Typography variant="h6" component="div" gutterBottom>
+            {nama}
+          </Typography>
+          <Box mt={3}>
+            {/* Manually customize spacing here */}
+            <Box mb={3}>
               <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
-                {detail.label}: {detail.value}
+                Nomor Aset: {nomor_aset}
               </Button>
             </Box>
-          ))}
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Jenis: {jenis}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Nama: {nama}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                OS: {os}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Manufaktur: {manufaktur}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Model: {model}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Serial Number: {serial_number}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Garansi: {garansi.toDateString()}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Status: {status}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                RAM: {ram} GB
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Harddisk: {harddisk} GB
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Prosesor: {prosesor}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Tahun Pembelian: {thn_pembelian.toDateString()}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                Nilai Pembelian: {nilai_pembelian}
+              </Button>
+            </Box>
+            <Box mb={3}>
+              <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
+                MAC: {mac}
+              </Button>
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Box>
