@@ -16,17 +16,16 @@ const data = [
     manufaktur: 'Asus',
     model: 'Vivobook',
     serial_number: '1234567890',
-    garansi: new Date('2023-08-06'), // Example date
+    garansi: new Date('2023-08-06'), 
     status: 'Product Sudah Rusak',
-    ram: 16, // GB
-    harddisk: 512, // GB
+    ram: 16, 
+    harddisk: 512, 
     prosesor: 'Intel i7',
     thn_pembelian: new Date('2022-01-15'),
     nilai_pembelian: '1500 USD', 
     mac: '00:1A:2B:3C:4D:5E',
     foto: '/public/LaptopBlack.png'
   },
-  // Add more devices as needed
 ];
 
 const AdminPage = () => {
