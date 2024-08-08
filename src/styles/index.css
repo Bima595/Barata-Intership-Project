@@ -2,3 +2,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.relative {
+    position: relative;
+  }
+  
+  .absolute {
+    position: absolute;
+  }
+  
+  .bottom-4 {
+    bottom: 1rem;
+  }
+  
+  .right-4 {
+    right: 1rem;
+  }
+  
+  .inline-block {
+    display: inline-block;
+  }
+  
+  .h-12 {
+    height: 3rem; /* Adjust as necessary */
+  }
+  
+  .mr-2 {
+    margin-right: 0.5rem;
+  }
+  
+  .ml-2 {
+    margin-left: 0.5rem;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .mt-4 {
+    margin-top: 1rem;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem; /* Adjust as necessary */
+  }
+  
