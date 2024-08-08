@@ -2,6 +2,9 @@ import { useState } from 'react';
 import HeroSection from '../components/HeroSection';
 import DeviceDetails from '../components/DeviceSearch';
 import Navbar from '../components/Navbar';
+import HistoryPinjamLaptop from '../components/HistoryPInjamLaptop';
+import HistoryKerusakanLaptop from '../components/HistoryKerusakanLaptop';
+import DeviceKantor from '../components/DeviceKantor';
 
 const data = [
   {
@@ -51,7 +54,12 @@ const AdminPage = () => {
             <p className="text-Black-500 text-4xl font-bold">Device not found !!!</p>
           </div>
         ) : (
-          <DeviceDetails device={filteredDevice} />
+          <>
+            <DeviceDetails device={filteredDevice} />
+            <HistoryPinjamLaptop />
+            <HistoryKerusakanLaptop />
+            <DeviceKantor />
+          </>
         )
       )}
     </div>
