@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-// Sample data
 export const data = [
   { peminjam: "Andi", device: "Asus A14E002", status: "Aktif", role: "K3LH" },
   { peminjam: "Ardo", device: "Lenovo Thinkpad 14E1", status: "Tidak Aktif", role: "Kontraktor" },
