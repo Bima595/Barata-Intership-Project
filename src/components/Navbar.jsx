@@ -13,8 +13,8 @@ const Navbar = () => {
         <div className="text-xl font-bold">OfficeTech.</div>
         <div className="hidden md:flex space-x-4">
           <a href="#" className="hover:underline">Home</a>
-          <a href="#" className="hover:underline">Data Table</a>
-          <a href="#" className="hover:underline">Feature</a>
+          <a href="#DeviceKantor" className="hover:underline">Data Table</a>
+          <a href="/input" className="hover:underline">Input</a>
         </div>
         <div className="md:hidden">
           <button onClick={toggleMenu} className="focus:outline-none">
@@ -27,8 +27,8 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden bg-gray-100 py-4 px-6">
           <a href="#" className="block py-2 hover:underline">Home</a>
-          <a href="#" className="block py-2 hover:underline">Data Table</a>
-          <a href="#" className="block py-2 hover:underline">Feature</a>
+          <a href="#DeviceKantor" className="block py-2 hover:underline">Data Table</a>
+          <a href="/input" className="hover:underline">Input</a>
         </div>
       )}
     </nav>

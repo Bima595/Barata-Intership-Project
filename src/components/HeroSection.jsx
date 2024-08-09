@@ -9,7 +9,7 @@ const HeroSection = ({ onSearch, error }) => {
   };
 
   return (
-    <div className="container mx-auto mt-20 flex flex-col md:flex-row items-center justify-between px-6">
+    <div className="container mx-auto mt-20 flex flex-col md:flex-row items-center justify-between px-6 md:min-h-screen">
       <div className="flex-1 mb-10 md:mb-0">
         <div className="max-w-xl ml-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 font-semibold" style={{fontFamily:'Plus Jakarta Sans'}}>OfficeTech.</h1>
@@ -35,7 +35,11 @@ const HeroSection = ({ onSearch, error }) => {
         </div>
       </div>
       <div className="flex-1 flex justify-end">
-        <img className="max-w-xl" src="/Asset 5.png" alt="Illustration" />
+        <img
+          className="w-full h-auto max-w-lg md:max-w-xl"
+          src="/Asset 5.png"
+          alt="Illustration"
+        />
       </div>
     </div>
   );
