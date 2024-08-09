@@ -21,7 +21,7 @@ const data = [
     thn_pembelian: new Date('2022-01-15'),
     nilai_pembelian: '1500 USD',
     mac: '00:1A:2B:3C:4D:5E',
-    foto: '/public/LaptopBlack.png',
+    foto: '/LaptopBlack.png',
     pemakai: {
       nama: 'Sundoyo Akap',
       nip: 'K3LH',

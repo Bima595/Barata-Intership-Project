@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { data as DeviceKantorData } from './DeviceKantor';
 
 const AsetKantor = () => {
