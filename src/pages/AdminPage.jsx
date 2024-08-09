@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import HistoryPinjamLaptop from '../components/HistoryPInjamLaptop';
 import HistoryKerusakanLaptop from '../components/HistoryKerusakanLaptop';
 import DeviceKantor from '../components/DeviceKantor';
+import AsetKantor from '../components/AsetKantor';
 
 const data = [
   {
@@ -57,10 +58,11 @@ const AdminPage = () => {
             <DeviceDetails device={filteredDevice} />
             <HistoryPinjamLaptop />
             <HistoryKerusakanLaptop />
-            <DeviceKantor />
           </>
         )
       )}
+      <DeviceKantor />
+      <AsetKantor />
     </div>
   );
 };
