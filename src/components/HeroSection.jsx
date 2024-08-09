@@ -12,8 +12,8 @@ const HeroSection = ({ onSearch, error }) => {
     <div className="container mx-auto mt-20 flex flex-col md:flex-row items-center justify-between px-6 md:min-h-screen">
       <div className="flex-1 mb-10 md:mb-0">
         <div className="max-w-xl ml-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 font-semibold" style={{fontFamily:'Plus Jakarta Sans'}}>OfficeTech.</h1>
-          <p className="text-base md:text-lg mb-6 font-light" style={{fontFamily:'Plus Jakarta Sans'}}>Menghubungkan Anda dengan Semua Perangkat Kantor, Memungkinkan Pengelolaan yang Lebih Baik dan Penggunaan yang Lebih Efektif, Demi Mencapai Produktivitas Maksimal.</p>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 font-semibold" style={{fontFamily:'Plus Jakarta Sans', color:'#29166F'}}>OfficeTech.</h1>
+          <p className="text-base md:text-lg mb-6 font-light" style={{fontFamily:'Plus Jakarta Sans', color:'#29166F'}}>Menghubungkan Anda dengan Semua Perangkat Kantor, Memungkinkan Pengelolaan yang Lebih Baik dan Penggunaan yang Lebih Efektif, Demi Mencapai Produktivitas Maksimal.</p>
           <div className="flex flex-col space-y-2">
             <div className="flex flex-col md:flex-row space-x-0 md:space-x-0">
               <input

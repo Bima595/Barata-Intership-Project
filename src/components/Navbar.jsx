@@ -1,4 +1,4 @@
-import{ useState } from 'react';
+import { useState } from 'react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,9 +8,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full text-black bg-gray-100" style={{ backgroundColor: "#F5F7FA" }}>
+    <nav className="fixed top-0 left-0 w-full text-black bg-gray-100 z-50" style={{ backgroundColor: "#F5F7FA" }}>
       <div className="container mx-auto flex justify-between items-center py-4 px-6">
-        <div className="text-xl font-bold">OfficeTech.</div>
+        <div className="text-xl font-bold" style={{ color: "#29166F" }}>OfficeTech.</div>
         <div className="hidden md:flex space-x-4">
           <a href="#" className="hover:underline">Home</a>
           <a href="#DeviceKantor" className="hover:underline">Data Table</a>
