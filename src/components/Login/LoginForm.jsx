@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MenuItem, FormControl, InputLabel, Select, TextField, Button } from '@mui/material';
+import {
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  TextField,
+  Button,
+} from '@mui/material';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 const LoginForm = () => {
   const [userType, setUserType] = useState('Karyawan');
@@ -11,6 +20,7 @@ const LoginForm = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleUserTypeChange = (event) => {
     setUserType(event.target.value);
@@ -24,21 +34,30 @@ const LoginForm = () => {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (userType === 'Admin') {
-      if (formData.username === 'admin' && formData.password === 'barata46') {
-        navigate('/admin');
-      } else {
-        setError('Invalid admin credentials');
+    try {
+      const response = await axios.post('http://localhost:5000/login', {
+        userType,
+        username: formData.username,
+        password: formData.password,
+        employeeId: formData.employeeId,
+      });
+
+      if (response.data.success) {
+        login({ role: response.data.role });
+        if (response.data.role === 'Admin') {
+          navigate('/admin');
+        } else if (response.data.role === 'Karyawan') {
+          navigate('/karyawan');
+        }
       }
-    } else {
-      const validEmployeeIds = ['123', '456', '789']; 
-      if (validEmployeeIds.includes(formData.employeeId)) {
-        navigate('/Karyawan');
+    } catch (error) {
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message);
       } else {
-        setError('Invalid employee ID');
+        setError('An error occurred during login.');
       }
     }
   };
@@ -87,7 +106,12 @@ const LoginForm = () => {
         />
       )}
       {error && <div className="text-red-500">{error}</div>}
-      <Button type="submit" variant="contained" color="primary" className="bg-blue-500 text-white mt-4">
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        className="bg-blue-500 text-white mt-4"
+      >
         Sign in
       </Button>
     </form>

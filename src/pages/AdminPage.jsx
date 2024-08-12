@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import HeroSection from '../components/HeroSection';
-import DeviceDetails from '../components/DeviceSearch';
+import DeviceDetails from '../components/Admin/DeviceSearch';
 import Navbar from '../components/Navbar';
-import HistoryPinjamLaptop from '../components/HistoryPInjamLaptop';
-import HistoryKerusakanLaptop from '../components/HistoryKerusakanLaptop';
-import DeviceKantor from '../components/DeviceKantor';
-import AsetKantor from '../components/AsetKantor';
+import HistoryPinjamLaptop from '../components/Admin/HistoryPInjamLaptop';
+import HistoryKerusakanLaptop from '../components/Admin/HistoryKerusakanLaptop';
+import DeviceKantor from '../components/Admin/DeviceKantor';
+import AsetKantor from '../components/Admin/AsetKantor';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import Dialog from '@mui/material/Dialog';

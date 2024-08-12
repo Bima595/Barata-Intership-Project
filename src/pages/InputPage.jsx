@@ -1,5 +1,5 @@
 import Navbar from '../components/Navbar';
-import InputDataAdmin from '../components/InputDataAdmin';
+import InputDataAdmin from '../components/Admin/InputDataAdmin';
 
 const InputPage = () => {
   return (
