@@ -93,6 +93,130 @@ app.get('/computers/:nomor_aset', (req, res) => {
   });
 });
 
+
+// Endpoint to create a new device loan (when the device is borrowed)
+app.post('/borrow-device', (req, res) => {
+  const { npk, nomor_aset } = req.body;
+  const tgl_peminjaman = new Date(); // Automatically set the current date and time
+
+  // Step 1: Validate if npk exists in pengguna table
+  const checkUserQuery = 'SELECT pengguna_id FROM pengguna WHERE npk = ?';
+  db.query(checkUserQuery, [npk], (err, userResults) => {
+      if (err) {
+          console.error('Database query error:', err);
+          return res.status(500).send('Database query error');
+      }
+
+      if (userResults.length === 0) {
+          return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const penggunaId = userResults[0].pengguna_id;
+
+      // Step 2: Validate if nomor_aset exists and is active in tb_komputer table
+      const checkAssetQuery = `
+          SELECT a.aset_id, k.status 
+          FROM aset a 
+          JOIN tb_komputer k ON a.komputer_id = k.id_komputer 
+          WHERE k.nomor_aset = ?`;
+      db.query(checkAssetQuery, [nomor_aset], (err, assetResults) => {
+          if (err) {
+              console.error('Database query error:', err);
+              return res.status(500).send('Database query error');
+          }
+
+          if (assetResults.length === 0) {
+              return res.status(404).json({ success: false, message: 'Asset not found' });
+          }
+
+          const asetId = assetResults[0].aset_id;
+          const status = assetResults[0].status;
+
+          if (status !== 'Aktif') {
+              return res.status(400).json({ success: false, message: 'Device is not available for borrowing' });
+          }
+
+          // Step 3: Insert a new record into peminjam table
+          const insertLoanQuery = `
+              INSERT INTO peminjam (aset_id, pengguna_id, tgl_peminjaman) 
+              VALUES (?, ?, ?)`;
+          db.query(insertLoanQuery, [asetId, penggunaId, tgl_peminjaman], (err, results) => {
+              if (err) {
+                  console.error('Database query error:', err);
+                  return res.status(500).send('Database query error');
+              }
+
+              // Step 4: Update device status to 'Tidak Aktif'
+              const updateStatusQuery = 'UPDATE tb_komputer SET status = ? WHERE nomor_aset = ?';
+              db.query(updateStatusQuery, ['Tidak Aktif', nomor_aset], (err) => {
+                  if (err) {
+                      console.error('Failed to update device status:', err);
+                      return res.status(500).send('Database query error');
+                  }
+
+                  res.json({
+                      success: true,
+                      message: 'Device borrowed successfully and status updated to "Tidak Aktif"',
+                      data: results
+                  });
+              });
+          });
+      });
+  });
+});
+
+
+app.post('/return-device', (req, res) => {
+  const { nomor_aset } = req.body;
+
+  // Check if the device is currently loaned out
+  const checkLoanQuery = `
+      SELECT p.peminjam_id, k.status
+      FROM peminjam p
+      JOIN aset a ON p.aset_id = a.aset_id
+      JOIN tb_komputer k ON a.komputer_id = k.id_komputer
+      WHERE k.nomor_aset = ? AND p.tgl_pengembalian IS NULL AND k.status = 'Tidak Aktif'
+  `;
+
+  db.query(checkLoanQuery, [nomor_aset], (err, results) => {
+      if (err) {
+          console.error('Database query error:', err);
+          return res.status(500).send('Database query error');
+      }
+
+      if (results.length > 0) {
+          // Mark the device as returned
+          const updateLoanQuery = `
+              UPDATE peminjam p
+              JOIN aset a ON p.aset_id = a.aset_id
+              JOIN tb_komputer k ON a.komputer_id = k.id_komputer
+              SET p.tgl_pengembalian = NOW(), k.status = 'Aktif'
+              WHERE k.nomor_aset = ? AND p.tgl_pengembalian IS NULL
+          `;
+
+          db.query(updateLoanQuery, [nomor_aset], (err, updateResults) => {
+              if (err) {
+                  console.error('Database query error:', err);
+                  return res.status(500).send('Database query error');
+              }
+
+              res.json({
+                  success: true,
+                  message: `Device ${nomor_aset} returned successfully and status updated to 'Aktif'`,
+                  data: updateResults,
+              });
+          });
+      } else {
+          res.status(404).json({
+              success: false,
+              message: `No active loan found for device ${nomor_aset}`,
+          });
+      }
+  });
+});
+
+
+
 //cari peminjam laptop
 app.get('/computers/:nomor_aset/borrowers', (req, res) => {
   const nomorAset = req.params.nomor_aset;
