@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import PropTypes from 'prop-types';
 import { Box, Typography, Button } from '@mui/material';
+import axios from 'axios';
 
-const DeviceDetails = ({ deviceId }) => {
-  const [device, setDevice] = useState(null);
+const DeviceDetails = ({ device }) => {
+  const [borrower, setBorrower] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/computers/${deviceId}`)
-      .then(response => {
-        setDevice(response.data.data);
-      })
-      .catch(error => {
-        console.error("There was an error fetching the data!", error);
-      });
-  }, [deviceId]);
+    const fetchBorrower = async () => {
+      try {
+        if (device?.nomor_aset) {
+          const response = await axios.get(`http://localhost:5000/computers/borrowers/${device.nomor_aset}`);
+          if (response.data.success) {
+            setBorrower(response.data.data);
+          } else {
+            setBorrower(null);
+          }
+        }
+      } catch (error) {
+        console.error("There was an error fetching the borrower data!", error);
+        setBorrower(null);
+      }
+    };
+
+    fetchBorrower();
+  }, [device]);
 
   if (!device) {
     return <p>Loading...</p>;
@@ -37,7 +47,6 @@ const DeviceDetails = ({ deviceId }) => {
     nilai_pembelian,
     mac,
     foto,
-    pemakai,
   } = device;
 
   return (
@@ -83,13 +92,14 @@ const DeviceDetails = ({ deviceId }) => {
           Pemakai Saat Ini
         </Typography>
         <Typography variant="body1" color="textSecondary">
-          {pemakai.nama}
+          {borrower?.nama || 'Data tidak tersedia'}
         </Typography>
         <Typography variant="body2" color="textSecondary" className="font-bold">
-          {pemakai.nip}
+          {borrower?.jabatan || 'Data tidak tersedia'}
         </Typography>
         <Typography variant="body2" color="textSecondary" className="font-light">
-          {new Date(pemakai.tanggal_pinjam).toDateString()} - Sekarang
+          {borrower?.tgl_peminjaman ? new Date(borrower.tgl_peminjaman).toDateString() : 'Tanggal Peminjaman tidak tersedia'} - 
+          {borrower?.tgl_pengembalian ? new Date(borrower.tgl_pengembalian).toDateString() : 'Sekarang'}
         </Typography>
       </Box>
     </Box>
@@ -97,7 +107,7 @@ const DeviceDetails = ({ deviceId }) => {
 };
 
 DeviceDetails.propTypes = {
-  deviceId: PropTypes.string.isRequired,
+  device: PropTypes.object.isRequired,
 };
 
 export default DeviceDetails;
