@@ -20,7 +20,7 @@ const KaryawanPage = () => {
 
     try {
       // Mengirim request ke backend untuk mencari data berdasarkan nomor aset
-      const response = await axios.get(`http://localhost:5000/computers/search/${query}`);
+      const response = await axios.get(`http://localhost:5000/computers/${query}`);
       const result = response.data;
 
       if (result.success && result.data) {

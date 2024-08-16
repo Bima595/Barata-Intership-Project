@@ -1,14 +1,26 @@
 import { useState, useEffect } from 'react';
-import { data as DeviceKantorData } from './DeviceKantor';
+import axios from 'axios';
 
 const AsetKantor = () => {
   const [roleFilter, setRoleFilter] = useState('');
+  const [asetData, setAsetData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
+    // Fetch data from the API
+    axios.get('http://localhost:5000/devicekantor') // Update with your API endpoint
+      .then(response => {
+        setAsetData(response.data.data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  }, []);
+
+  useEffect(() => {
     const calculateAsetByRole = () => {
-      const asetByRole = DeviceKantorData.reduce((acc, item) => {
-        const role = item.role || 'Aset Kosong'; // Use 'Aset Kosong' for empty role
+      const asetByRole = asetData.reduce((acc, item) => {
+        const role = item.unit_organisasi || 'Aset Kosong'; // Use 'Aset Kosong' for empty role
 
         if (roleFilter === '' || role === roleFilter) {
           acc[role] = (acc[role] || 0) + 1;
@@ -21,7 +33,7 @@ const AsetKantor = () => {
     };
 
     calculateAsetByRole();
-  }, [roleFilter]);
+  }, [roleFilter, asetData]);
 
   return (
     <div className="mt-6 px-4 sm:px-6 lg:px-32 mb-20 lg:mb-40">
@@ -37,7 +49,7 @@ const AsetKantor = () => {
             className="w-full p-2 border border-gray-300 rounded"
           >
             <option value="">Semua Role</option>
-            {[...new Set(DeviceKantorData.map(item => item.role || 'Aset Kosong'))].map(role => (
+            {[...new Set(asetData.map(item => item.unit_organisasi || 'Aset Kosong'))].map(role => (
               <option key={role} value={role}>{role}</option>
             ))}
           </select>

@@ -1,26 +1,70 @@
-import { useState } from 'react';
-
-export const data = [
-  { peminjam: "Andi", device: "Asus A14E002", status: "Aktif", role: "K3LH" },
-  { peminjam: "Ardo", device: "Lenovo Thinkpad 14E1", status: "Tidak Aktif", role: "Kontraktor" },
-  { peminjam: "Supono", device: "Monitor LG 19 inch 14GG2i", status: "Perbaikan", role: "SPI" },
-  { peminjam: "Supardi", device: "Speaker LG Sub 24 G2", status: "Hilang", role: "Petinggi" },
-  { peminjam: "", device: "Asus 14XAAE", status: "Tidak Terpakai", role: "" },
-  { peminjam: "", device: "Acer Aspire 5", status: "Tidak Terpakai", role: "" },
-  { peminjam: "", device: "Lenovo Ideapad 3", status: "Tidak Terpakai", role: "" }
-];
-
-const getUniqueValues = (field) => {
-  const values = data.map(item => item[field] || "Kosong");
-  return [...new Set(values)];
-};
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const DeviceKantor = () => {
+  const [data, setData] = useState([]);
   const [peminjamFilter, setPeminjamFilter] = useState('');
   const [deviceFilter, setDeviceFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [updatedData, setUpdatedData] = useState({});
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/devicekantor')
+      .then(response => {
+        const fetchedData = response.data.data.map(item => ({
+          id: item.id, // assuming you have an ID for the item
+          peminjam: item.nama_pengguna || '', 
+          device: `${item.nama_komputer} ${item.model}`,
+          status: item.status, 
+          role: item.unit_organisasi || ''
+        }));
+        setData(fetchedData);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  }, []);
+
+  const handleEditClick = (item) => {
+    setSelectedItem(item);
+    setUpdatedData(item);
+    setEditModalVisible(true);
+  };
+
+  const handleDeleteClick = (item) => {
+    setSelectedItem(item);
+    setDeleteModalVisible(true);
+  };
+
+  const handleUpdate = () => {
+    axios.put(`http://localhost:5000/komputer/${selectedItem.device}`, updatedData)
+      .then(response => {
+        console.log(response.data.message);
+        // Refresh data or update state accordingly
+        setEditModalVisible(false);
+      })
+      .catch(error => {
+        console.error('Error updating data:', error);
+      });
+  };
+
+  const handleDelete = () => {
+    axios.delete(`http://localhost:5000/komputer/${selectedItem.device}`)
+      .then(response => {
+        console.log(response.data.message);
+        // Refresh data or update state accordingly
+        setDeleteModalVisible(false);
+      })
+      .catch(error => {
+        console.error('Error deleting data:', error);
+      });
+  };
 
   const filteredData = data.filter(item =>
     (peminjamFilter === '' || (peminjamFilter === "Kosong" ? item.peminjam === '' : item.peminjam === peminjamFilter)) &&
@@ -66,7 +110,7 @@ const DeviceKantor = () => {
                 <select
                   value={peminjamFilter}
                   onChange={(e) => setPeminjamFilter(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-gray-300"
                 >
                   <option value="">Peminjam</option>
                   {getUniqueValues('peminjam').map(value => (
@@ -78,9 +122,9 @@ const DeviceKantor = () => {
                 <select
                   value={deviceFilter}
                   onChange={(e) => setDeviceFilter(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-gray-300"
                 >
-                  <option value="">Device</option>
+                  <option value="">Devices</option>
                   {getUniqueValues('device').map(value => (
                     <option key={value} value={value}>{value}</option>
                   ))}
@@ -90,7 +134,7 @@ const DeviceKantor = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-gray-300"
                 >
                   <option value="">Status</option>
                   {getUniqueValues('status').map(value => (
@@ -99,39 +143,80 @@ const DeviceKantor = () => {
                 </select>
               </th>
               <th className="p-2">
-                <select 
+                <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-gray-300"
                 >
-                  <option value="">Role</option>
+                  <option value="">Roles</option>
                   {getUniqueValues('role').map(value => (
                     <option key={value} value={value}>{value}</option>
                   ))}
                 </select>
               </th>
+              <th className="p-2">UPDATE</th>
+              <th className="p-2">DELETE</th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item, index) => (
-                <tr key={index} className="border-b">
-                  <td className="p-2">{item.peminjam || "Kosong"}</td>
-                  <td className="p-2">{item.device}</td>
-                  <td className={`p-2 ${item.status === 'Aktif' ? 'bg-green-200' : item.status === 'Tidak Aktif' ? 'bg-red-200' : item.status === 'Perbaikan' ? 'bg-yellow-200' : item.status === 'Tidak Terpakai' ? 'bg-blue-200' : 'bg-white'}`}>{item.status}</td>
-                  <td className="p-2">{item.role || "Kosong"}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" className="p-2 text-center">Data Tidak Ditemukan</td>
+            {filteredData.map((item, index) => (
+              <tr key={index} className="border-b">
+                <td className="p-2">{item.peminjam || 'Kosong'}</td>
+                <td className="p-2">{item.device}</td>
+                <td className="p-2">{item.status}</td>
+                <td className="p-2">{item.role || 'Kosong'}</td>
+                <td className="p-2 text-green-600 cursor-pointer" onClick={() => handleEditClick(item)}>✏️</td>
+                <td className="p-2 text-red-600 cursor-pointer" onClick={() => handleDeleteClick(item)}>🗑️</td>
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
       </div>
+
+      {/* Update Modal */}
+      {editModalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 max-w-lg">
+            <h2 className="text-xl font-bold mb-4">Update Device</h2>
+            <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }}>
+              <div className="mb-4">
+                <label className="block text-gray-700">Device Name</label>
+                <input
+                  type="text"
+                  value={updatedData.device}
+                  onChange={(e) => setUpdatedData({ ...updatedData, device: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
+              </div>
+              {/* Add other fields similarly */}
+              <div className="flex justify-end space-x-2">
+                <button type="button" onClick={() => setEditModalVisible(false)} className="p-2 bg-gray-300 rounded">Cancel</button>
+                <button type="submit" className="p-2 bg-green-500 text-white rounded">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 max-w-lg">
+            <h2 className="text-xl font-bold mb-4">Delete Confirmation</h2>
+            <p>Apakah Anda akan menghapus ID ini?</p>
+            <div className="flex justify-end space-x-2 mt-4">
+              <button type="button" onClick={handleDelete} className="p-2 bg-red-500 text-white rounded">Iya</button>
+              <button type="button" onClick={() => setDeleteModalVisible(false)} className="p-2 bg-gray-300 rounded">Tidak</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+  function getUniqueValues(field) {
+    return [...new Set(data.map(item => item[field]))];
+  }
 };
 
 export default DeviceKantor;

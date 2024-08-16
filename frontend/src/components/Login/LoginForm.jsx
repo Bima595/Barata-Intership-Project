@@ -7,7 +7,10 @@ import {
   Select,
   TextField,
   Button,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 
@@ -18,6 +21,7 @@ const LoginForm = () => {
     password: '',
     employeeId: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -32,6 +36,14 @@ const LoginForm = () => {
       ...formData,
       [event.target.name]: event.target.value,
     });
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
   };
 
   const handleSubmit = async (event) => {
@@ -88,11 +100,25 @@ const LoginForm = () => {
           <TextField
             label="Password"
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleChange}
             fullWidth
             variant="outlined"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
         </>
       ) : (
