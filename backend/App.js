@@ -200,9 +200,26 @@ app.get('/computers/:nomor_aset/borrowers', (req, res) => {
 });
 
 //create new computer
-app.post('/komputer', (req, res) => {
-    console.log('Request Body:', req.body);
-  
+app.post('/komputer', upload.single('foto'), (req, res) => {
+  const { nomor_aset } = req.body;
+
+  // Cek apakah nomor_aset sudah ada di database
+  const checkQuery = 'SELECT nomor_aset FROM tb_komputer WHERE nomor_aset = ?';
+
+  db.query(checkQuery, [nomor_aset], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).send('Database query error');
+    }
+
+    if (results.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nomor aset sudah ada di database. Tidak bisa membuat komputer dengan nomor aset yang sama.'
+      });
+    }
+
+    // Jika nomor_aset belum ada, lakukan operasi INSERT
     const computerData = [
       req.body.nomor_aset,
       req.body.jenis,
@@ -219,16 +236,15 @@ app.post('/komputer', (req, res) => {
       req.body.thn_pembelian,
       req.body.nilai_pembelian,
       req.body.mac,
-      req.body.foto,
+      req.file ? req.file.filename : null,
       req.body.deskripsi
     ];
-  
-    const query = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?)`;
-  
-    db.query(query, [computerData], (err, results) => {
+
+    const insertQuery = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?)`;
+
+    db.query(insertQuery, [computerData], (err, results) => {
       if (err) {
         console.error('Database query error:', err);
-        console.log('Request Body:', req.body);
         return res.status(500).send('Database query error');
       }
       res.json({
@@ -239,12 +255,31 @@ app.post('/komputer', (req, res) => {
     });
   });
 
-// Update computer
-app.put('/komputer/:nomor_aset', (req, res) => {
-    console.log('Request Body:', req.body);
-  
-    const nomorAset = req.params.nomor_aset;
+
+// Update komputer
+app.put('/komputer/:nomor_aset', upload.single('foto'), (req, res) => {
+  const currentNomorAset = req.params.nomor_aset;
+  const newNomorAset = req.body.nomor_aset;
+
+  // Check if the new nomor_aset already exists in the database
+  const checkQuery = 'SELECT nomor_aset FROM tb_komputer WHERE nomor_aset = ? AND nomor_aset != ?';
+
+  db.query(checkQuery, [newNomorAset, currentNomorAset], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).send('Database query error');
+    }
+
+    if (results.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nomor aset sudah ada di database. Tidak bisa mengupdate komputer dengan nomor aset yang sama.'
+      });
+    }
+
+    // If the check passes, proceed with the update
     const updatedData = {
+      nomor_aset: newNomorAset,
       jenis: req.body.jenis,
       nama: req.body.nama,
       os: req.body.os,
@@ -259,17 +294,18 @@ app.put('/komputer/:nomor_aset', (req, res) => {
       thn_pembelian: req.body.thn_pembelian,
       nilai_pembelian: req.body.nilai_pembelian,
       mac: req.body.mac,
-      foto: req.body.foto,
+      foto: req.file ? req.file.filename : req.body.foto,
       deskripsi: req.body.deskripsi
     };
-  
-    const query = `
+
+    const updateQuery = `
       UPDATE tb_komputer 
-      SET jenis = ?, nama = ?, os = ?, manufaktur = ?, model = ?, serial_number = ?, garansi = ?, status = ?, ram = ?, harddisk = ?, prosesor = ?, thn_pembelian = ?, nilai_pembelian = ?, mac = ?, foto = ?, deskripsi = ? 
+      SET nomor_aset = ?, jenis = ?, nama = ?, os = ?, manufaktur = ?, model = ?, serial_number = ?, garansi = ?, status = ?, ram = ?, harddisk = ?, prosesor = ?, thn_pembelian = ?, nilai_pembelian = ?, mac = ?, foto = ?, deskripsi = ? 
       WHERE nomor_aset = ?
     `;
-  
+
     const values = [
+      updatedData.nomor_aset,
       updatedData.jenis,
       updatedData.nama,
       updatedData.os,
@@ -286,20 +322,19 @@ app.put('/komputer/:nomor_aset', (req, res) => {
       updatedData.mac,
       updatedData.foto,
       updatedData.deskripsi,
-      nomorAset
+      currentNomorAset
     ];
-  
-    db.query(query, values, (err, results) => {
+
+    db.query(updateQuery, values, (err, results) => {
       if (err) {
         console.error('Database query error:', err);
-        console.log('Request Body:', req.body);
         return res.status(500).send('Database query error');
       }
-  
+
       if (results.affectedRows === 0) {
         return res.status(404).send('Computer not found');
       }
-  
+
       res.json({
         success: true,
         message: 'Computer updated successfully',
@@ -307,6 +342,9 @@ app.put('/komputer/:nomor_aset', (req, res) => {
       });
     });
 });
+
+
+
 
 //delete a komputer
 app.delete('/computers/:nomor_aset', (req, res) => {
