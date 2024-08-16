@@ -1,10 +1,20 @@
+// /components/Navbar.jsx
 import { useState } from 'react';
+import { useAuth } from '../components/Login/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { auth, logout } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
@@ -15,6 +25,11 @@ const Navbar = () => {
           <a href="#" className="hover:underline">Home</a>
           <a href="#DeviceKantor" className="hover:underline">Data Table</a>
           <a href="/input" className="hover:underline">Input</a>
+          {auth && (
+            <button onClick={handleLogout} className="text-red-500 hover:underline">
+              Log Out
+            </button>
+          )}
         </div>
         <div className="md:hidden">
           <button onClick={toggleMenu} className="focus:outline-none">
@@ -29,6 +44,11 @@ const Navbar = () => {
           <a href="#" className="block py-2 hover:underline">Home</a>
           <a href="#DeviceKantor" className="block py-2 hover:underline">Data Table</a>
           <a href="/input" className="hover:underline">Input</a>
+          {auth && (
+            <button onClick={handleLogout} className="text-red-500 hover:underline block mt-4">
+              Log Out
+            </button>
+          )}
         </div>
       )}
     </nav>
