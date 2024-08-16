@@ -526,8 +526,6 @@ app.put('/komputer/:nomor_aset', upload.single('foto'), (req, res) => {
 });
 
 
-
-
 //delete a komputer
 app.delete('/computers/:nomor_aset', (req, res) => {
   const nomorAset = req.params.nomor_aset;
