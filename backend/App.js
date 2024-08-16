@@ -200,7 +200,7 @@ app.get('/computers/:nomor_aset/borrowers', (req, res) => {
 });
 
 //create new computer
-app.post('/komputer', upload.single('foto'), (req, res) => {
+app.post('/komputer'), upload.single('foto'), (req, res) => {
   const { nomor_aset } = req.body;
 
   // Cek apakah nomor_aset sudah ada di database
@@ -253,11 +253,11 @@ app.post('/komputer', upload.single('foto'), (req, res) => {
         data: results,
       });
     });
-  });
+  })};
 
 
 // Update komputer
-app.put('/komputer/:nomor_aset', upload.single('foto'), (req, res) => {
+app.put('/komputer/:nomor_aset'), upload.single('foto'), (req, res) => {
   const currentNomorAset = req.params.nomor_aset;
   const newNomorAset = req.body.nomor_aset;
 
@@ -341,7 +341,7 @@ app.put('/komputer/:nomor_aset', upload.single('foto'), (req, res) => {
         data: results,
       });
     });
-});
+})};
 
 
 
