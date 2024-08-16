@@ -304,115 +304,151 @@ const upload = multer({ storage: storage });
 
 //create new computer
 app.post('/komputer', upload.single('foto'), (req, res) => {
-  console.log('Request Body:', req.body);
-  console.log('Uploaded File:', req.file);
+  const { nomor_aset } = req.body;
 
-  const computerData = [
-    req.body.nomor_aset,
-    req.body.jenis,
-    req.body.nama,
-    req.body.os,
-    req.body.manufaktur,
-    req.body.model,
-    req.body.serial_number,
-    req.body.garansi,
-    req.body.status,
-    req.body.ram,
-    req.body.harddisk,
-    req.body.prosesor,
-    req.body.thn_pembelian,
-    req.body.nilai_pembelian,
-    req.body.mac,
-    req.file ? req.file.filename : null, // Save the file name in the database
-    req.body.deskripsi
-  ];
+  // Cek apakah nomor_aset sudah ada di database
+  const checkQuery = 'SELECT nomor_aset FROM tb_komputer WHERE nomor_aset = ?';
 
-  const query = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?)`;
-
-  db.query(query, [computerData], (err, results) => {
+  db.query(checkQuery, [nomor_aset], (err, results) => {
     if (err) {
       console.error('Database query error:', err);
-      console.log('Request Body:', req.body);
       return res.status(500).send('Database query error');
     }
-    res.json({
-      success: true,
-      message: 'Computer added successfully',
-      data: results,
+
+    if (results.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nomor aset sudah ada di database. Tidak bisa membuat komputer dengan nomor aset yang sama.'
+      });
+    }
+
+    // Jika nomor_aset belum ada, lakukan operasi INSERT
+    const computerData = [
+      req.body.nomor_aset,
+      req.body.jenis,
+      req.body.nama,
+      req.body.os,
+      req.body.manufaktur,
+      req.body.model,
+      req.body.serial_number,
+      req.body.garansi,
+      req.body.status,
+      req.body.ram,
+      req.body.harddisk,
+      req.body.prosesor,
+      req.body.thn_pembelian,
+      req.body.nilai_pembelian,
+      req.body.mac,
+      req.file ? req.file.filename : null,
+      req.body.deskripsi
+    ];
+
+    const insertQuery = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?)`;
+
+    db.query(insertQuery, [computerData], (err, results) => {
+      if (err) {
+        console.error('Database query error:', err);
+        return res.status(500).send('Database query error');
+      }
+      res.json({
+        success: true,
+        message: 'Computer added successfully',
+        data: results,
+      });
     });
   });
 });
 
 
-// Update computer
+
+// Update komputer
 app.put('/komputer/:nomor_aset', upload.single('foto'), (req, res) => {
-  console.log('Request Body:', req.body);
-  console.log('Uploaded File:', req.file);
+  const currentNomorAset = req.params.nomor_aset;
+  const newNomorAset = req.body.nomor_aset;
 
-  const nomorAset = req.params.nomor_aset;
-  const updatedData = {
-    jenis: req.body.jenis,
-    nama: req.body.nama,
-    os: req.body.os,
-    manufaktur: req.body.manufaktur,
-    model: req.body.model,
-    serial_number: req.body.serial_number,
-    garansi: req.body.garansi,
-    status: req.body.status,
-    ram: req.body.ram,
-    harddisk: req.body.harddisk,
-    prosesor: req.body.prosesor,
-    thn_pembelian: req.body.thn_pembelian,
-    nilai_pembelian: req.body.nilai_pembelian,
-    mac: req.body.mac,
-    foto: req.file ? req.file.filename : req.body.foto, // Update the file name if a new file is uploaded
-    deskripsi: req.body.deskripsi
-  };
+  // Check if the new nomor_aset already exists in the database
+  const checkQuery = 'SELECT nomor_aset FROM tb_komputer WHERE nomor_aset = ? AND nomor_aset != ?';
 
-  const query = `
-    UPDATE tb_komputer 
-    SET jenis = ?, nama = ?, os = ?, manufaktur = ?, model = ?, serial_number = ?, garansi = ?, status = ?, ram = ?, harddisk = ?, prosesor = ?, thn_pembelian = ?, nilai_pembelian = ?, mac = ?, foto = ?, deskripsi = ? 
-    WHERE nomor_aset = ?
-  `;
-
-  const values = [
-    updatedData.jenis,
-    updatedData.nama,
-    updatedData.os,
-    updatedData.manufaktur,
-    updatedData.model,
-    updatedData.serial_number,
-    updatedData.garansi,
-    updatedData.status,
-    updatedData.ram,
-    updatedData.harddisk,
-    updatedData.prosesor,
-    updatedData.thn_pembelian,
-    updatedData.nilai_pembelian,
-    updatedData.mac,
-    updatedData.foto,
-    updatedData.deskripsi,
-    nomorAset
-  ];
-
-  db.query(query, values, (err, results) => {
+  db.query(checkQuery, [newNomorAset, currentNomorAset], (err, results) => {
     if (err) {
       console.error('Database query error:', err);
-      console.log('Request Body:', req.body);
       return res.status(500).send('Database query error');
     }
 
-    if (results.affectedRows === 0) {
-      return res.status(404).send('Computer not found');
+    if (results.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nomor aset sudah ada di database. Tidak bisa mengupdate komputer dengan nomor aset yang sama.'
+      });
     }
 
-    res.json({
-      success: true,
-      message: 'Computer updated successfully',
-      data: results,
+    // If the check passes, proceed with the update
+    const updatedData = {
+      nomor_aset: newNomorAset,
+      jenis: req.body.jenis,
+      nama: req.body.nama,
+      os: req.body.os,
+      manufaktur: req.body.manufaktur,
+      model: req.body.model,
+      serial_number: req.body.serial_number,
+      garansi: req.body.garansi,
+      status: req.body.status,
+      ram: req.body.ram,
+      harddisk: req.body.harddisk,
+      prosesor: req.body.prosesor,
+      thn_pembelian: req.body.thn_pembelian,
+      nilai_pembelian: req.body.nilai_pembelian,
+      mac: req.body.mac,
+      foto: req.file ? req.file.filename : req.body.foto,
+      deskripsi: req.body.deskripsi
+    };
+
+    const updateQuery = `
+      UPDATE tb_komputer 
+      SET nomor_aset = ?, jenis = ?, nama = ?, os = ?, manufaktur = ?, model = ?, serial_number = ?, garansi = ?, status = ?, ram = ?, harddisk = ?, prosesor = ?, thn_pembelian = ?, nilai_pembelian = ?, mac = ?, foto = ?, deskripsi = ? 
+      WHERE nomor_aset = ?
+    `;
+
+    const values = [
+      updatedData.nomor_aset,
+      updatedData.jenis,
+      updatedData.nama,
+      updatedData.os,
+      updatedData.manufaktur,
+      updatedData.model,
+      updatedData.serial_number,
+      updatedData.garansi,
+      updatedData.status,
+      updatedData.ram,
+      updatedData.harddisk,
+      updatedData.prosesor,
+      updatedData.thn_pembelian,
+      updatedData.nilai_pembelian,
+      updatedData.mac,
+      updatedData.foto,
+      updatedData.deskripsi,
+      currentNomorAset
+    ];
+
+    db.query(updateQuery, values, (err, results) => {
+      if (err) {
+        console.error('Database query error:', err);
+        return res.status(500).send('Database query error');
+      }
+
+      if (results.affectedRows === 0) {
+        return res.status(404).send('Computer not found');
+      }
+
+      res.json({
+        success: true,
+        message: 'Computer updated successfully',
+        data: results,
+      });
     });
   });
 });
+
 
 
 
