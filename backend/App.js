@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-
+const fs = require('fs');
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,7 +16,7 @@ var db = mysql.createConnection({
   user: 'root',
   password: '',
   database: 'barata2',
-  port: '3306',
+  port: '8000',
 });
 
 db.connect(function (err) {
@@ -27,41 +27,53 @@ db.connect(function (err) {
   }
 });
 
-app.post('/login', (req, res) => {
-  const { userType, username, password, employeeId } = req.body;
+const karyawanFilePath = path.join(__dirname, 'karyawan.json');
+const karyawanData = JSON.parse(fs.readFileSync(karyawanFilePath, 'utf8'));
 
-  if (userType === 'Admin') {
-    const query = `SELECT * FROM pengguna WHERE nama = ? AND password = ? AND peran = 'Admin'`;
-    db.query(query, [username, password], (err, results) => {
-      if (err) {
-        return res.status(500).send('Database query error');
-      }
-      if (results.length > 0) {
-        res.json({ success: true, role: 'Admin' });
-      } else {
-        res
-          .status(401)
-          .json({ success: false, message: 'Invalid admin credentials' });
-      }
-    });
-  } else if (userType === 'Karyawan') {
-    const query = `SELECT * FROM pengguna WHERE npk = ? AND peran = 'Karyawan'`;
-    db.query(query, [employeeId], (err, results) => {
-      if (err) {
-        return res.status(500).send('Database query error');
-      }
-      if (results.length > 0) {
+//end point login
+app.post('/login', (req, res) => {
+    const { userType, username, password, employeeId } = req.body;
+  
+    if (userType === 'Admin') {
+      const query = `SELECT * FROM pengguna WHERE nama = ? AND password = ? AND peran = 'Admin'`;
+      db.query(query, [username, password], (err, results) => {
+        if (err) {
+          return res.status(500).send('Database query error');
+        }
+        if (results.length > 0) {
+          res.json({ success: true, role: 'Admin' });
+        } else {
+          res
+            .status(401)
+            .json({ success: false, message: 'Invalid admin credentials' });
+        }
+      });
+    } else if (userType === 'Karyawan') {
+      // Check against dummy data first
+      const karyawan = karyawanData.find(k => k.npk === employeeId);
+      if (karyawan) {
         res.json({ success: true, role: 'Karyawan' });
       } else {
-        res
-          .status(401)
-          .json({ success: false, message: 'Invalid employee ID' });
+        // If not found in JSON, check in the database
+        const query = `SELECT * FROM pengguna WHERE npk = ? AND peran = 'Karyawan'`;
+        db.query(query, [employeeId], (err, results) => {
+          if (err) {
+            return res.status(500).send('Database query error');
+          }
+          if (results.length > 0) {
+            res.json({ success: true, role: 'Karyawan' });
+          } else {
+            res
+              .status(401)
+              .json({ success: false, message: 'Invalid employee ID' });
+          }
+        });
       }
-    });
-  } else {
-    res.status(400).json({ success: false, message: 'Invalid user type' });
-  }
-});
+    } else {
+      res.status(400).json({ success: false, message: 'Invalid user type' });
+    }
+  });
+
 
 // Endpoint untuk mengambil semua komputer
 app.get('/computers', (req, res) => {
@@ -97,32 +109,6 @@ app.get('/devicekantor', (req, res) => {
   });
 });
 
-// Endpoint untuk mencari komputer berdasarkan nomor aset dan NPK karyawan
-// app.get('/computers/:nomor_aset', async (req, res) => {
-//   const { nomor_aset } = req.params;
-//   const { npk } = req.query;
-
-//   try {
-//     // Query untuk menemukan aset yang dipinjam oleh karyawan dengan NPK tersebut
-//     const result = await db.query(
-//       `SELECT * FROM tb_komputer
-//         INNER JOIN peminjam ON tb_komputer.nomor_aset = peminjam.aset_id
-//         WHERE tb_komputer.nomor_aset = ? AND peminjam.pengguna_id = (
-//         SELECT pengguna_id FROM pengguna WHERE npk = ?
-//       )`,
-//       [nomor_aset, npk]
-//     );
-
-//     if (result.length > 0) {
-//       res.json({ success: true, data: result[0] });
-//     } else {
-//       res.json({ success: false, message: 'Device not found or not borrowed by this user' });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: 'An error occurred while fetching the data' });
-//   }
-// });
-
 //Mencari komputer by nomor aset
 app.get('/computers/:nomor_aset', (req, res) => {
   const nomorAset = req.params.nomor_aset;
@@ -144,34 +130,6 @@ app.get('/computers/:nomor_aset', (req, res) => {
     }
   });
 });
-
-
-// app.get('/computers/borrowers/:nomor_aset', (req, res) => {
-//   const nomorAset = req.params.nomor_aset;
-//   console.log('Request for borrowers received for computer: ', nomorAset);
-
-//   const query = `
-//         SELECT g.nama, g.jabatan, p.tgl_peminjaman, p.tgl_pengembalian
-//         FROM peminjam p
-//         JOIN pengguna g ON p.pengguna_id = g.pengguna_id
-//         JOIN aset a ON p.aset_id = a.aset_id
-//         JOIN tb_komputer k ON a.komputer_id = k.id_komputer
-//         WHERE k.nomor_aset = ?
-//     `;
-//   db.query(query, [nomorAset], (err, results) => {
-//     if (err) {
-//       return res.status(500).send('Database query error');
-//     }
-//     if (results.length > 0) {
-//       res.json({ success: true, data: results[0] });
-//     } else {
-//       res.status(404).json({
-//         success: false,
-//         message: 'No borrowers found for this computer',
-//       });
-//     }
-//   });
-// });
 
 
 app.post('/borrow-device', (req, res) => {
@@ -210,7 +168,7 @@ app.post('/borrow-device', (req, res) => {
           const idKomputer = komputerResults[0].id_komputer;
           const status = komputerResults[0].status;
 
-          if (status !== 'Aktif') {
+          if (status !== 'Tidak Terpakai') {
               return res.status(400).json({ success: false, message: 'Device is not available for borrowing' });
           }
 
@@ -236,7 +194,7 @@ app.post('/borrow-device', (req, res) => {
 
                   // Step 4: Update device status to 'Tidak Aktif'
                   const updateStatusQuery = 'UPDATE tb_komputer SET status = ? WHERE nomor_aset = ?';
-                  db.query(updateStatusQuery, ['Tidak Aktif', nomor_aset], (err) => {
+                  db.query(updateStatusQuery, ['Aktif', nomor_aset], (err) => {
                       if (err) {
                           console.error('Failed to update device status:', err);
                           return res.status(500).send('Database query error');
@@ -244,7 +202,7 @@ app.post('/borrow-device', (req, res) => {
 
                       res.json({
                           success: true,
-                          message: 'Device borrowed successfully, status updated to "Tidak Aktif", and aset record created',
+                          message: 'Device borrowed successfully, status updated to "Aktif", and aset record created',
                           data: loanResults
                       });
                   });
@@ -265,7 +223,7 @@ app.post('/return-device', (req, res) => {
       FROM peminjam p
       JOIN aset a ON p.aset_id = a.aset_id
       JOIN tb_komputer k ON a.komputer_id = k.id_komputer
-      WHERE k.nomor_aset = ? AND p.tgl_pengembalian IS NULL AND k.status = 'Tidak Aktif'
+      WHERE k.nomor_aset = ? AND p.tgl_pengembalian IS NULL AND k.status = 'Aktif'
   `;
 
   db.query(checkLoanQuery, [nomor_aset], (err, results) => {
@@ -280,7 +238,7 @@ app.post('/return-device', (req, res) => {
               UPDATE peminjam p
               JOIN aset a ON p.aset_id = a.aset_id
               JOIN tb_komputer k ON a.komputer_id = k.id_komputer
-              SET p.tgl_pengembalian = NOW(), k.status = 'Aktif'
+              SET p.tgl_pengembalian = NOW(), k.status = 'Tidak Terpakai'
               WHERE k.nomor_aset = ? AND p.tgl_pengembalian IS NULL
           `;
 
@@ -292,7 +250,7 @@ app.post('/return-device', (req, res) => {
 
               res.json({
                   success: true,
-                  message: `Device ${nomor_aset} returned successfully and status updated to 'Aktif'`,
+                  message: `Device ${nomor_aset} returned successfully and status updated to 'Tidak Terpakai'`,
                   data: updateResults,
               });
           });
@@ -420,27 +378,6 @@ app.post('/komputer', upload.single('foto'), (req, res) => {
       req.body.deskripsi
     ];
 
-    // const computerData = [
-    //   nomor_aset = req.body.nomor_aset || '',
-    //   jenis = req.body.jenis || '',
-    //   nama = req.body.nama || '',
-    //   os = req.body.os || '',
-    //   manufaktur = req.body.manufaktur || '',
-    //   model = req.body.model || '',
-    //   serial_number = req.body.serial_number || '',
-    //   garansi = req.body.garansi || '',
-    //   status = req.body.status || '',
-    //   ram = req.body.ram || '',
-    //   harddisk = req.body.harddisk || '',
-    //   prosesor = req.body.prosesor || '',
-    //   thn_pembelian = req.body.thn_pembelian || null,
-    //   nilai_pembelian = req.body.nilai_pembelian || null,
-    //   mac = req.body.mac || '',
-    //   foto = req.body.foto || null,
-    //   deskripsi = req.body.deskripsi || '',
-    // ];
-
-    //const insertQuery = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const insertQuery = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?)`;
 
     db.query(insertQuery, [computerData], (err, results) => {
