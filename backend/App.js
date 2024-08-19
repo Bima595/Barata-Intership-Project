@@ -399,7 +399,7 @@ app.post('/komputer', upload.single('foto'), (req, res) => {
       });
     }
 
-    // Jika nomor_aset belum ada, lakukan operasi INSERT
+    //Jika nomor_aset belum ada, lakukan operasi INSERT
     const computerData = [
       req.body.nomor_aset,
       req.body.jenis,
@@ -420,6 +420,27 @@ app.post('/komputer', upload.single('foto'), (req, res) => {
       req.body.deskripsi
     ];
 
+    // const computerData = [
+    //   nomor_aset = req.body.nomor_aset || '',
+    //   jenis = req.body.jenis || '',
+    //   nama = req.body.nama || '',
+    //   os = req.body.os || '',
+    //   manufaktur = req.body.manufaktur || '',
+    //   model = req.body.model || '',
+    //   serial_number = req.body.serial_number || '',
+    //   garansi = req.body.garansi || '',
+    //   status = req.body.status || '',
+    //   ram = req.body.ram || '',
+    //   harddisk = req.body.harddisk || '',
+    //   prosesor = req.body.prosesor || '',
+    //   thn_pembelian = req.body.thn_pembelian || null,
+    //   nilai_pembelian = req.body.nilai_pembelian || null,
+    //   mac = req.body.mac || '',
+    //   foto = req.body.foto || null,
+    //   deskripsi = req.body.deskripsi || '',
+    // ];
+
+    //const insertQuery = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const insertQuery = `INSERT INTO tb_komputer (nomor_aset, jenis, nama, os, manufaktur, model, serial_number, garansi, status, ram, harddisk, prosesor, thn_pembelian, nilai_pembelian, mac, foto, deskripsi) VALUES (?)`;
 
     db.query(insertQuery, [computerData], (err, results) => {

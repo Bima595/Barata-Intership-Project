@@ -38,16 +38,23 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    merk: '',
-    prosesor: '',
-    ram: '',
-    storage: '',
-    vga: '',
+
+    nomor_aset: '',
+    jenis: '',
+    nama: '',
     os: '',
-    serialNumber: '',
+    manufaktur: '',
+    serial_number: '',
     garansi: '',
     status: '',
+    ram:'',
+    harddisk: '',
+    prosesor: '',
+    thn_pembelian: '',
+    nilai_pembelian: '',
+    mac: '',
     foto: [],
+    deskripsi: '',
   });
 
   const handleSearch = async (query) => {
@@ -104,10 +111,91 @@ const AdminPage = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const handleSubmit = () => {
-    console.log('Form Data:', formData);
-    handleClose();
+  // const handleSubmit = () => {
+  //   console.log('Form Data:', formData);
+  //   handleClose();
+  // };
+
+  // const handleSubmit = async () => {
+  //   const data = new FormData();
+    
+  //   data.append('nomor_aset', formData.nomor_aset); 
+  //   data.append('jenis', formData.jenis);
+  //   data.append('nama', formData.nama);
+  //   data.append('os', formData.os);
+  //   data.append('manufaktur', formData.manufaktur);
+  //   data.append('model', formData.model); 
+  //   data.append('serial_number', formData.serial_number);
+  //   data.append('garansi', formData.garansi);
+  //   data.append('status', formData.status);
+  //   data.append('ram', formData.ram);
+  //   data.append('harddisk', formData.harddisk);
+  //   data.append('prosesor', formData.prosesor);
+  //   data.append('thn_pembelian', formData.thn_pembelian); 
+  //   data.append('nilai_pembelian', formData.nilai_pembelian); 
+  //   data.append('mac', formData.mac); 
+  //   data.append('foto', formData.foto);
+  //   data.append('deskripsi', formData.deskripsi); 
+    
+  //   formData.foto.forEach((file) => {
+  //     data.append('foto', file);
+  //   });
+  
+  //   try {
+  //     const response = await axios.post('http://localhost:5000/komputer', data, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //     });
+  //     if (response.data.success) {
+  //       alert('Computer added successfully');
+  //     } else {
+  //       alert(response.data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error('There was an error submitting the form!', error);
+  //   } finally {
+  //     handleClose();
+  //   }
+  // };
+
+  const handleSubmit = async () => {
+    const data = new FormData();
+    
+    for (const key in formData) {
+      if (key === 'foto') {
+        formData.foto.forEach((file) => {
+          data.append('foto', file);
+        });
+      } else {
+        data.append(key, formData[key]);
+      }
+    }
+  
+    try {
+      const response = await axios.post('http://localhost:5000/komputer', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (response.data.success) {
+        alert('Computer added successfully');
+        // You might want to reset the form or perform other UI updates here
+      } else {
+        alert(response.data.message);
+      }
+    } catch (error) {
+      console.error('There was an error submitting the form!', error);
+      alert('Submission failed. Please try again.');
+    } finally {
+      handleClose();
+    }
   };
+  
+  
+
+
 
   return (
     <div>
@@ -144,84 +232,90 @@ const AdminPage = () => {
         onClick={handleOpen}
       />
 
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Input Device Details</DialogTitle>
         <DialogContent>
+          <h3>Nomor Aset</h3>
           <TextField
             margin="dense"
-            label="Merk"
+            label="nomor aset"
             type="text"
-            name="merk"
+            name="nomor_aset"
             fullWidth
-            value={formData.merk}
+            value={formData.nomor_aset}
             onChange={handleInputChange}
           />
+          <h3>Jenis</h3>
           <TextField
             margin="dense"
-            label="Prosesor"
+            label="jenis"
             type="text"
-            name="prosesor"
+            name="jenis"
             fullWidth
-            value={formData.prosesor}
+            value={formData.jenis}
             onChange={handleInputChange}
           />
+          <h3>nama</h3>
           <TextField
             margin="dense"
-            label="RAM"
-            type="number"
-            name="ram"
-            fullWidth
-            value={formData.ram}
-            onChange={handleInputChange}
-          />
-          <TextField
-            margin="dense"
-            label="Storage"
-            type="number"
-            name="storage"
-            fullWidth
-            value={formData.storage}
-            onChange={handleInputChange}
-          />
-          <TextField
-            margin="dense"
-            label="VGA"
+            label="nama"
             type="text"
-            name="vga"
+            name="nama"
             fullWidth
-            value={formData.vga}
+            value={formData.nama}
             onChange={handleInputChange}
           />
+          <h3>Operating system (OS)</h3>
           <TextField
             margin="dense"
-            label="Sistem Operasi"
+            label="os"
             type="text"
             name="os"
             fullWidth
             value={formData.os}
             onChange={handleInputChange}
           />
+          <h3>Manufaktur</h3>
           <TextField
             margin="dense"
-            label="Serial Number"
+            label="manufaktur"
             type="text"
-            name="serialNumber"
+            name="manufaktur"
             fullWidth
-            value={formData.serialNumber}
+            value={formData.manufaktur}
             onChange={handleInputChange}
           />
+          <h3>Model</h3>
           <TextField
             margin="dense"
-            label="Tgl Akhir Masa Garansi"
+            label="model"
+            type="text"
+            name="model"
+            fullWidth
+            value={formData.model}
+            onChange={handleInputChange}
+          />
+          <h3>Serial Number (SN)</h3>
+          <TextField
+            margin="dense"
+            label="serial number"
+            type="text"
+            name="serial_number"
+            fullWidth
+            value={formData.serial_number}
+            onChange={handleInputChange}
+          />
+          <h3>Masa Garansi</h3>
+          <TextField
+            margin="dense"
+            label=""
             type="date"
             name="garansi"
             fullWidth
-            InputLabelProps={{
-              shrink: true,
-            }}
             value={formData.garansi}
             onChange={handleInputChange}
           />
+          <h3>Status Perangkat</h3>
           <TextField
             margin="dense"
             label="Status Perangkat"
@@ -237,6 +331,67 @@ const AdminPage = () => {
               </MenuItem>
             ))}
           </TextField>
+          <h3>Ram (GB)</h3>
+          <TextField
+            margin="dense"
+            label="ram"
+            type="number"
+            name="ram"
+            fullWidth
+            value={formData.ram}
+            onChange={handleInputChange}
+          />
+          <h3>Harddisk (GB)</h3>
+          <TextField
+            margin="dense"
+            label="harddisk"
+            type="number"
+            name="harddisk"
+            fullWidth
+            value={formData.harddisk}
+            onChange={handleInputChange}
+          />
+          <h3>Prosesor (Gen)</h3>
+          <TextField
+            margin="dense"
+            label="prosessor"
+            type="text"
+            name="prosessor"
+            fullWidth
+            value={formData.prosessor}
+            onChange={handleInputChange}
+          />
+          <h3>Tahun Pembelian</h3>
+          <TextField
+            margin="dense"
+            label=""
+            type="date"
+            name="thn_pembelian"
+            fullWidth
+            value={formData.thn_pembelian}
+            onChange={handleInputChange}
+          />
+          <h3>Nilai Pembelian</h3>
+          <TextField
+            margin="dense"
+            label="nilai pembelian"
+            type="text"
+            name="nilai_pembelian"
+            fullWidth
+            value={formData.nilai_pembelian}
+            onChange={handleInputChange}
+          />
+          <h3>Mac</h3>
+          <TextField
+            margin="dense"
+            label="mac"
+            type="text"
+            name="mac"
+            fullWidth
+            value={formData.mac}
+            onChange={handleInputChange}
+          />
+          <h3>Foto</h3>
           <Card variant="outlined" sx={{ textAlign: 'center', marginTop: '16px',}}>
             <CardContent >
               <input
@@ -281,6 +436,18 @@ const AdminPage = () => {
               )}
             </CardContent>
           </Card>
+          <h3>Deskripsi</h3>
+          <TextField
+            margin="dense"
+            label="deskripsi"
+            type="text"
+            name="deskripsi"
+            fullWidth
+            multiline
+            rows={5}
+            value={formData.deskripsi}
+            onChange={handleInputChange}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
