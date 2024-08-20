@@ -39,6 +39,7 @@ const AdminPage = () => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
 
+
     nomor_aset: '',
     jenis: '',
     nama: '',
@@ -65,11 +66,12 @@ const AdminPage = () => {
     }
     setError('');
     setLoading(true);
-
+  
     try {
+      // Mencari device
       const response = await axios.get(`http://localhost:5000/computers/${query}`);
       const result = response.data;
-
+  
       if (result.success && result.data) {
         setFilteredDevice(result.data);
       } else {
@@ -82,6 +84,7 @@ const AdminPage = () => {
       setLoading(false);
     }
   };
+  
 
 
   const handleInputChange = (e) => {
@@ -110,54 +113,6 @@ const AdminPage = () => {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
-  // const handleSubmit = () => {
-  //   console.log('Form Data:', formData);
-  //   handleClose();
-  // };
-
-  // const handleSubmit = async () => {
-  //   const data = new FormData();
-    
-  //   data.append('nomor_aset', formData.nomor_aset); 
-  //   data.append('jenis', formData.jenis);
-  //   data.append('nama', formData.nama);
-  //   data.append('os', formData.os);
-  //   data.append('manufaktur', formData.manufaktur);
-  //   data.append('model', formData.model); 
-  //   data.append('serial_number', formData.serial_number);
-  //   data.append('garansi', formData.garansi);
-  //   data.append('status', formData.status);
-  //   data.append('ram', formData.ram);
-  //   data.append('harddisk', formData.harddisk);
-  //   data.append('prosesor', formData.prosesor);
-  //   data.append('thn_pembelian', formData.thn_pembelian); 
-  //   data.append('nilai_pembelian', formData.nilai_pembelian); 
-  //   data.append('mac', formData.mac); 
-  //   data.append('foto', formData.foto);
-  //   data.append('deskripsi', formData.deskripsi); 
-    
-  //   formData.foto.forEach((file) => {
-  //     data.append('foto', file);
-  //   });
-  
-  //   try {
-  //     const response = await axios.post('http://localhost:5000/komputer', data, {
-  //       headers: {
-  //         'Content-Type': 'multipart/form-data',
-  //       },
-  //     });
-  //     if (response.data.success) {
-  //       alert('Computer added successfully');
-  //     } else {
-  //       alert(response.data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error('There was an error submitting the form!', error);
-  //   } finally {
-  //     handleClose();
-  //   }
-  // };
 
   const handleSubmit = async () => {
     const data = new FormData();
@@ -216,8 +171,8 @@ const AdminPage = () => {
         ) : (
           <>
             <DeviceDetails device={filteredDevice} />
-            <HistoryPinjamLaptop />
-            <HistoryKerusakanLaptop />
+            <HistoryPinjamLaptop nomorAset={filteredDevice.nomor_aset}/>
+            <HistoryKerusakanLaptop nomorAset={filteredDevice.nomor_aset}/>
           </>
         ))
       )}

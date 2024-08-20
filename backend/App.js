@@ -10,6 +10,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 var db = mysql.createConnection({
   host: 'localhost',
@@ -86,7 +87,7 @@ app.get('/computers', (req, res) => {
   });
 });
 
-// Endpoint untuk devicekantor dan asetkantor
+// Endpoint untuk melihat device di tersedia tidak nya
 app.get('/devicekantor', (req, res) => {
   const query = `
     SELECT 
@@ -132,6 +133,7 @@ app.get('/computers/:nomor_aset', (req, res) => {
 });
 
 
+//endpoint pinjam device 
 app.post('/borrow-device', (req, res) => {
   const { npk, nomor_aset } = req.body;
   const tgl_peminjaman = new Date(); // Automatically set the current date and time
@@ -214,8 +216,9 @@ app.post('/borrow-device', (req, res) => {
 
 
 
+//return-device
 app.post('/return-device', (req, res) => {
-  const { nomor_aset } = req.body;
+  const { nomor_aset, deskripsi } = req.body;
 
   // Check if the device is currently loaned out
   const checkLoanQuery = `
@@ -233,25 +236,40 @@ app.post('/return-device', (req, res) => {
       }
 
       if (results.length > 0) {
-          // Mark the device as returned
-          const updateLoanQuery = `
-              UPDATE peminjam p
-              JOIN aset a ON p.aset_id = a.aset_id
-              JOIN tb_komputer k ON a.komputer_id = k.id_komputer
-              SET p.tgl_pengembalian = NOW(), k.status = 'Tidak Terpakai'
-              WHERE k.nomor_aset = ? AND p.tgl_pengembalian IS NULL
+          const peminjam_id = results[0].peminjam_id;
+
+          // Record the history (damage/replacement details)
+          const insertHistoryQuery = `
+              INSERT INTO history (peminjam_id, deskripsi) 
+              VALUES (?, ?)
           `;
 
-          db.query(updateLoanQuery, [nomor_aset], (err, updateResults) => {
+          db.query(insertHistoryQuery, [peminjam_id, deskripsi], (err, historyResults) => {
               if (err) {
                   console.error('Database query error:', err);
-                  return res.status(500).send('Database query error');
+                  return res.status(500).send('Failed to record history');
               }
 
-              res.json({
-                  success: true,
-                  message: `Device ${nomor_aset} returned successfully and status updated to 'Tidak Terpakai'`,
-                  data: updateResults,
+              // Mark the device as returned
+              const updateLoanQuery = `
+                  UPDATE peminjam p
+                  JOIN aset a ON p.aset_id = a.aset_id
+                  JOIN tb_komputer k ON a.komputer_id = k.id_komputer
+                  SET p.tgl_pengembalian = NOW(), k.status = 'Tidak Terpakai'
+                  WHERE k.nomor_aset = ? AND p.tgl_pengembalian IS NULL
+              `;
+
+              db.query(updateLoanQuery, [nomor_aset], (err, updateResults) => {
+                  if (err) {
+                      console.error('Database query error:', err);
+                      return res.status(500).send('Failed to update device status');
+                  }
+
+                  res.json({
+                      success: true,
+                      message: `Device ${nomor_aset} returned successfully and status updated to 'Tidak Terpakai'. History recorded.`,
+                      data: updateResults,
+                  });
               });
           });
       } else {
@@ -263,26 +281,75 @@ app.post('/return-device', (req, res) => {
   });
 });
 
+// Get history of damages/replacements for a specific asset
+app.get('/history/:nomor_aset/rusak', (req, res) => {
+  const { nomor_aset } = req.params;
 
-//cari peminjam laptop
+  const getHistoryQuery = `
+      SELECT h.deskripsi, h.waktu
+      FROM history h
+      JOIN peminjam p ON h.peminjam_id = p.peminjam_id
+      JOIN aset a ON p.aset_id = a.aset_id
+      JOIN tb_komputer k ON a.komputer_id = k.id_komputer
+      WHERE k.nomor_aset = ?
+      ORDER BY h.waktu DESC
+  `;
+
+  db.query(getHistoryQuery, [nomor_aset], (err, results) => {
+      if (err) {
+          console.error('Database query error:', err);
+          return res.status(500).send('Database query error');
+      }
+
+      if (results.length > 0) {
+          res.json({
+              success: true,
+              history: results
+          });
+      } else {
+          res.status(404).json({
+              success: false,
+              message: `No history found for device ${nomor_aset}`,
+          });
+      }
+  });
+});
+
+
+
 app.get('/computers/:nomor_aset/borrowers', (req, res) => {
   const nomorAset = req.params.nomor_aset;
-  console.log('Request for borrowers received for computer: ', nomorAset);
+  console.log('Request for latest borrower received for computer: ', nomorAset);
 
   const query = `
-        SELECT p.*, g.nama as nama_pengguna
-        FROM peminjam p
-        JOIN pengguna g ON p.pengguna_id = g.pengguna_id
-        JOIN aset a ON p.aset_id = a.aset_id
-        JOIN tb_komputer k ON a.komputer_id = k.id_komputer
-        WHERE k.nomor_aset = ?
-    `;
+    SELECT 
+      g.nama AS nama_pengguna, 
+      g.unit_organisasi AS divisi,
+      p.tgl_peminjaman, 
+      p.tgl_pengembalian
+    FROM peminjam p
+    JOIN pengguna g ON p.pengguna_id = g.pengguna_id
+    JOIN aset a ON p.aset_id = a.aset_id
+    JOIN tb_komputer k ON a.komputer_id = k.id_komputer
+    WHERE k.nomor_aset = ?
+    ORDER BY p.tgl_peminjaman DESC
+    LIMIT 1
+  `;
+  
   db.query(query, [nomorAset], (err, results) => {
     if (err) {
       return res.status(500).send('Database query error');
     }
     if (results.length > 0) {
-      res.json({ success: true, data: results });
+      res.json({
+        success: true, 
+        data: {
+          nama_pengguna: results[0].nama_pengguna,
+          divisi: results[0].divisi,
+          tgl_peminjaman: results[0].tgl_peminjaman,
+          tgl_pengembalian: results[0].tgl_pengembalian
+        }
+      });
     } else {
       res.status(404).json({
         success: false,
@@ -291,6 +358,8 @@ app.get('/computers/:nomor_aset/borrowers', (req, res) => {
     }
   });
 });
+
+
 
 //Mencari History Device
 app.get('/computers/:nomor_aset/history', (req, res) => {
@@ -325,7 +394,7 @@ app.get('/computers/:nomor_aset/history', (req, res) => {
   });
 });
 
-//file storage
+// Konfigurasi multer untuk menyimpan file
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -337,8 +406,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-//create new computer
-app.post('/komputer', upload.single('foto'), (req, res) => {
+// Endpoint untuk membuat komputer baru dengan beberapa file foto
+app.post('/komputer', upload.array('foto', 10), (req, res) => {
   const { nomor_aset } = req.body;
 
   // Cek apakah nomor_aset sudah ada di database
@@ -357,7 +426,10 @@ app.post('/komputer', upload.single('foto'), (req, res) => {
       });
     }
 
-    //Jika nomor_aset belum ada, lakukan operasi INSERT
+    // Jika nomor_aset belum ada, lakukan operasi INSERT
+    const fileNames = req.files.map(file => file.filename); // Mendapatkan nama semua file
+    const foto = fileNames.join(','); // Menggabungkan nama file dengan tanda koma
+
     const computerData = [
       req.body.nomor_aset,
       req.body.jenis,
@@ -374,7 +446,7 @@ app.post('/komputer', upload.single('foto'), (req, res) => {
       req.body.thn_pembelian,
       req.body.nilai_pembelian,
       req.body.mac,
-      req.file ? req.file.filename : null,
+      foto, // Menyimpan nama file yang sudah digabungkan
       req.body.deskripsi
     ];
 
@@ -391,7 +463,7 @@ app.post('/komputer', upload.single('foto'), (req, res) => {
         data: results,
       });
     });
-  })
+  });
 });
 
 
@@ -499,6 +571,8 @@ app.delete('/computers/:nomor_aset', (req, res) => {
     });
   });
 });
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

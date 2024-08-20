@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types'; // Import PropTypes
 
 const VShapeArrow = ({ size = 16, color = 'black' }) => {
   const borderSize = size / 2;
@@ -15,6 +15,12 @@ const VShapeArrow = ({ size = 16, color = 'black' }) => {
       }}
     ></div>
   );
+};
+
+// Define PropTypes for the component
+VShapeArrow.propTypes = {
+  size: PropTypes.number,
+  color: PropTypes.string,
 };
 
 export default VShapeArrow;
