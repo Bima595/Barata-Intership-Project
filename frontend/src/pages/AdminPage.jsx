@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import HeroSection from '../components/HeroSection';
-// import DeviceDetails from '../components/Admin/DeviceSearch';
+import UpdateData from '../components/Admin/UpdateData';
 import DeviceDetails from '../components/Karyawan/DeviceDetails';
 import Navbar from '../components/Navbar';
 import HistoryPinjamLaptop from '../components/Admin/HistoryPInjamLaptop';
@@ -25,11 +25,13 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import CancelIcon from '@mui/icons-material/Cancel';
 
+
 const statusOptions = [
-  { value: 'aktif', label: 'Aktif' },
-  { value: 'tidak aktif', label: 'Tidak Aktif' },
-  { value: 'hilang', label: 'Hilang' },
-  { value: 'rusak', label: 'Rusak' },
+  { value: 'Aktif', label: 'Aktif' },
+  { value: 'Tidak Aktif', label: 'Tidak Aktif' },
+  { value: 'Perbaikan', label: 'Perbaikan' },
+  { value: 'Hilang', label: 'Hilang' },
+  { value: 'Tidak Terpakai', label: 'Tidak Terpakai' },
 ];
 
 const AdminPage = () => {
@@ -94,10 +96,9 @@ const AdminPage = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    const fileURLs = files.map((file) => URL.createObjectURL(file));
     setFormData({
       ...formData,
-      foto: [...formData.foto, ...fileURLs],
+      foto: [...formData.foto, ...files],  
     });
   };
 
@@ -111,66 +112,19 @@ const AdminPage = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // const handleSubmit = () => {
-  //   console.log('Form Data:', formData);
-  //   handleClose();
-  // };
-
-  // const handleSubmit = async () => {
-  //   const data = new FormData();
-    
-  //   data.append('nomor_aset', formData.nomor_aset); 
-  //   data.append('jenis', formData.jenis);
-  //   data.append('nama', formData.nama);
-  //   data.append('os', formData.os);
-  //   data.append('manufaktur', formData.manufaktur);
-  //   data.append('model', formData.model); 
-  //   data.append('serial_number', formData.serial_number);
-  //   data.append('garansi', formData.garansi);
-  //   data.append('status', formData.status);
-  //   data.append('ram', formData.ram);
-  //   data.append('harddisk', formData.harddisk);
-  //   data.append('prosesor', formData.prosesor);
-  //   data.append('thn_pembelian', formData.thn_pembelian); 
-  //   data.append('nilai_pembelian', formData.nilai_pembelian); 
-  //   data.append('mac', formData.mac); 
-  //   data.append('foto', formData.foto);
-  //   data.append('deskripsi', formData.deskripsi); 
-    
-  //   formData.foto.forEach((file) => {
-  //     data.append('foto', file);
-  //   });
-  
-  //   try {
-  //     const response = await axios.post('http://localhost:5000/komputer', data, {
-  //       headers: {
-  //         'Content-Type': 'multipart/form-data',
-  //       },
-  //     });
-  //     if (response.data.success) {
-  //       alert('Computer added successfully');
-  //     } else {
-  //       alert(response.data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error('There was an error submitting the form!', error);
-  //   } finally {
-  //     handleClose();
-  //   }
-  // };
-
   const handleSubmit = async () => {
     const data = new FormData();
     
     for (const key in formData) {
       if (key === 'foto') {
         formData.foto.forEach((file) => {
-          data.append('foto', file);
+          data.append('foto', file); 
         });
       } else {
         data.append(key, formData[key]);
       }
     }
+
   
     try {
       const response = await axios.post('http://localhost:5000/komputer', data, {
@@ -181,7 +135,6 @@ const AdminPage = () => {
       
       if (response.data.success) {
         alert('Computer added successfully');
-        // You might want to reset the form or perform other UI updates here
       } else {
         alert(response.data.message);
       }
@@ -192,10 +145,6 @@ const AdminPage = () => {
       handleClose();
     }
   };
-  
-  
-
-
 
   return (
     <div>
@@ -222,6 +171,7 @@ const AdminPage = () => {
         ))
       )}
       <DeviceKantor />
+      <UpdateData />
       <AsetKantor />
 
       {/* Input Device Admin */}
@@ -356,9 +306,9 @@ const AdminPage = () => {
             margin="dense"
             label="prosessor"
             type="text"
-            name="prosessor"
+            name="prosesor"
             fullWidth
-            value={formData.prosessor}
+            value={formData.prosesor}
             onChange={handleInputChange}
           />
           <h3>Tahun Pembelian</h3>
