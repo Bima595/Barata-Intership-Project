@@ -96,9 +96,10 @@ const AdminPage = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
+    const fileURLs = files.map((file) => URL.createObjectURL(file));
     setFormData({
       ...formData,
-      foto: [...formData.foto, ...files],  
+      foto: [...formData.foto, ...fileURLs],
     });
   };
 
@@ -165,8 +166,8 @@ const AdminPage = () => {
         ) : (
           <>
             <DeviceDetails device={filteredDevice} />
-            <HistoryPinjamLaptop />
-            <HistoryKerusakanLaptop />
+            <HistoryPinjamLaptop nomorAset={filteredDevice.nomor_aset}/>
+            <HistoryKerusakanLaptop nomorAset={filteredDevice.nomor_aset}/>
           </>
         ))
       )}

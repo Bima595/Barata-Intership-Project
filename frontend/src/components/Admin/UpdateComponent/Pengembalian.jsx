@@ -56,7 +56,7 @@ const Pengembalian = ({ open, handleClose }) => {
   
     const data = {
       nomor_aset: selectedAssetsData[0].nomor_aset,
-      deskripsi: result.deskripsi, // Include description
+      deskripsi: description, // Correctly include the description here
     };
   
     fetch('http://localhost:5000/return-device', {

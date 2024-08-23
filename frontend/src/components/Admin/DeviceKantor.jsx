@@ -15,7 +15,7 @@ const DeviceKantor = () => {
     axios.get('http://localhost:5000/devicekantor')
       .then(response => {
         const fetchedData = response.data.data.map(item => ({
-          id: item.id, 
+          id: item.id_komputer, 
           peminjam: item.nama_pengguna || '', 
           device: `${item.nama_komputer} ${item.model}`,
           status: item.status, 
@@ -171,7 +171,7 @@ const DeviceKantor = () => {
   );
 
   function getUniqueValues(field) {
-    return [...new Set(data.map(item => item[field]))];
+    return [...new Set(data.map(item => (item[field] || 'Kosong')))];
   }
 };
 

@@ -1,35 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Box, Typography, Button } from '@mui/material';
 import axios from 'axios';
+import { Box, Typography } from '@mui/material';
+import Carousel from 'react-material-ui-carousel';
 
 const DeviceDetails = ({ device }) => {
   const [borrower, setBorrower] = useState(null);
-
-  useEffect(() => {
-    const fetchBorrower = async () => {
-      try {
-        if (device?.nomor_aset) {
-          const response = await axios.get(`http://localhost:5000/computers/borrowers/${device.nomor_aset}`);
-          if (response.data.success) {
-            setBorrower(response.data.data);
-          } else {
-            setBorrower(null);
-          }
-        }
-      } catch (error) {
-        console.error("There was an error fetching the borrower data!", error);
-        setBorrower(null);
-      }
-    };
-
-    fetchBorrower();
-  }, [device]);
-
-  if (!device) {
-    return <p>Loading...</p>;
-  }
-
   const {
     nomor_aset,
     jenis,
@@ -49,59 +25,142 @@ const DeviceDetails = ({ device }) => {
     foto,
   } = device;
 
+  useEffect(() => {
+    const fetchBorrowerData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/computers/${nomor_aset}/borrowers`
+        );
+        const result = response.data;
+
+        if (result.success) {
+          setBorrower(result.data);
+        } else {
+          setBorrower(null);
+        }
+      } catch (error) {
+        console.warn('Data sedang tidak dipinjam:', error);
+        setBorrower(null);
+      }
+    };
+
+    if (nomor_aset) {
+      fetchBorrowerData();
+    }
+  }, [nomor_aset]);
+
+  const fotoArray = foto ? foto.split(',') : [];
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center" mb={5} p={3}>
-      <Box display="flex" alignItems="center">
-        <Box position="relative" display="flex" alignItems="center" mr={5}>
-          <img src={foto} alt="Device" style={{ maxWidth: '400px', marginRight: '20px' }} />
+      <Box display="flex" alignItems="center" justifyContent="center" width="100%">
+        <Box position="relative" width="400px" height="400px">
+          {fotoArray.length > 0 ? (
+            <Carousel
+              indicators={true}
+              autoPlay={false}
+              navButtonsAlwaysVisible={true}
+              animation="slide"
+            >
+              {fotoArray.map((fileName, index) => (
+                <Box
+                  key={index}
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  width="100%"
+                  height="100%"
+                  overflow="hidden"
+                  padding="10px"
+                >
+                  <img
+                    src={`http://localhost:5000/uploads/${fileName}`}
+                    alt={`Device ${index + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '10px',
+                      boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                    }}
+                  />
+                </Box>
+              ))}
+            </Carousel>
+          ) : (
+            <Typography variant="body1">No images available</Typography>
+          )}
         </Box>
 
-        <Box>
+        <Box ml={5}>
           <Typography variant="h6" component="div" gutterBottom>
             {nama}
           </Typography>
           <Box mt={3}>
             {[
-              { label: "Nomor Aset", value: nomor_aset },
-              { label: "Jenis", value: jenis },
-              { label: "OS", value: os },
-              { label: "Manufaktur", value: manufaktur },
-              { label: "Model", value: model },
-              { label: "Serial Number", value: serial_number },
-              { label: "Garansi", value: new Date(garansi).toDateString() },
-              { label: "Status", value: status },
-              { label: "RAM", value: `${ram} GB` },
-              { label: "Harddisk", value: `${harddisk} GB` },
-              { label: "Prosesor", value: prosesor },
-              { label: "Tahun Pembelian", value: new Date(thn_pembelian).toDateString() },
-              { label: "Nilai Pembelian", value: nilai_pembelian },
-              { label: "MAC", value: mac },
+              { label: 'Nomor Aset', value: nomor_aset },
+              { label: 'Jenis', value: jenis },
+              { label: 'OS', value: os },
+              { label: 'Manufaktur', value: manufaktur },
+              { label: 'Model', value: model },
+              { label: 'Serial Number', value: serial_number },
+              { label: 'Garansi', value: new Date(garansi).toDateString() },
+              { label: 'Status', value: status },
+              { label: 'RAM', value: `${ram} GB` },
+              { label: 'Harddisk', value: `${harddisk} GB` },
+              { label: 'Prosesor', value: prosesor },
+              {
+                label: 'Tahun Pembelian',
+                value: new Date(thn_pembelian).toDateString(),
+              },
+              { label: 'Nilai Pembelian', value: nilai_pembelian },
+              { label: 'MAC', value: mac },
             ].map(({ label, value }) => (
               <Box mb={3} key={label}>
-                <Button variant="outlined" disabled style={{ borderRadius: '800px', color: 'black' }}>
-                  {label}: {value}
-                </Button>
+                <Typography variant="body1">
+                  <strong>{label}:</strong> {value}
+                </Typography>
               </Box>
             ))}
           </Box>
         </Box>
       </Box>
 
-      <Box mt={5} style={{ fontFamily: 'Plus Jakarta Sans' }}>
-        <Typography variant="h6" component="div" gutterBottom className="font-semibold">
-          Pemakai Saat Ini
-        </Typography>
-        <Typography variant="body1" color="textSecondary">
-          {borrower?.nama || 'Data tidak tersedia'}
-        </Typography>
-        <Typography variant="body2" color="textSecondary" className="font-bold">
-          {borrower?.jabatan || 'Data tidak tersedia'}
-        </Typography>
-        <Typography variant="body2" color="textSecondary" className="font-light">
-          {borrower?.tgl_peminjaman ? new Date(borrower.tgl_peminjaman).toDateString() : 'Tanggal Peminjaman tidak tersedia'} - 
-          {borrower?.tgl_pengembalian ? new Date(borrower.tgl_pengembalian).toDateString() : 'Sekarang'}
-        </Typography>
-      </Box>
+      {borrower ? (
+        borrower.tgl_pengembalian ? (
+          <Box mt={5}>
+            <Typography variant="h6" component="div" gutterBottom>
+              Device sedang tidak digunakan
+            </Typography>
+          </Box>
+        ) : (
+          <Box mt={5}>
+            <Typography variant="h6" component="div" gutterBottom>
+              Pemakai Saat Ini
+            </Typography>
+            <Typography variant="h4" component="div">
+              {borrower.nama_pengguna}
+            </Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+              Divisi: {borrower.divisi}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              {new Date(borrower.tgl_peminjaman).toLocaleDateString('id-ID')} -{' '}
+              {borrower.tgl_pengembalian
+                ? new Date(borrower.tgl_pengembalian).toLocaleDateString(
+                    'id-ID'
+                  )
+                : 'Sekarang'}
+            </Typography>
+          </Box>
+        )
+      ) : (
+        <Box mt={5}>
+          <Typography variant="h6" component="div" gutterBottom>
+            Tidak ada pemakai saat ini
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

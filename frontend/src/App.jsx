@@ -1,4 +1,3 @@
-// App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
@@ -13,9 +12,9 @@ const App = () => {
       <Router>
         <Routes>
           <Route path="/" element={<LoginPage />} />
-          <Route path="/admin" element={<PrivateRoute element={<AdminPage />} />} />
-          <Route path="/input" element={<PrivateRoute element={<InputPage />} />} />
-          <Route path="/karyawan" element={<PrivateRoute element={<KaryawanPage />} />} />
+          <Route path="/admin" element={<PrivateRoute element={<AdminPage />} requiredRole="Admin" />} />
+          <Route path="/input" element={<PrivateRoute element={<InputPage />} requiredRole="Admin" />} />
+          <Route path="/karyawan" element={<PrivateRoute element={<KaryawanPage />} requiredRole="Karyawan" />} />
         </Routes>
       </Router>
     </AuthProvider>
