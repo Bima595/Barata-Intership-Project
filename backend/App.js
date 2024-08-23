@@ -31,6 +31,18 @@ db.connect(function (err) {
 const karyawanFilePath = path.join(__dirname, 'karyawan.json');
 const karyawanData = JSON.parse(fs.readFileSync(karyawanFilePath, 'utf8'));
 
+// Konfigurasi multer untuk menyimpan file
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); 
+  }
+});
+
+const upload = multer({ storage: storage });
+
 //end point login
 app.post('/login', (req, res) => {
     const { userType, username, password, employeeId } = req.body;
@@ -217,8 +229,10 @@ app.post('/borrow-device', (req, res) => {
 
 
 //return-device
-app.post('/return-device', (req, res) => {
+app.post('/return-device', upload.array('foto', 5), (req, res) => {
   const { nomor_aset, deskripsi } = req.body;
+  const fotoFiles = req.files || [];
+  const foto = fotoFiles.map(file => file.filename).join(', '); // Join filenames with a comma
 
   // Check if the device is currently loaned out
   const checkLoanQuery = `
@@ -240,11 +254,11 @@ app.post('/return-device', (req, res) => {
 
           // Record the history (damage/replacement details)
           const insertHistoryQuery = `
-              INSERT INTO history (peminjam_id, deskripsi) 
-              VALUES (?, ?)
+              INSERT INTO history (peminjam_id, deskripsi, foto) 
+              VALUES (?, ?, ?)
           `;
 
-          db.query(insertHistoryQuery, [peminjam_id, deskripsi], (err, historyResults) => {
+          db.query(insertHistoryQuery, [peminjam_id, deskripsi || null, foto], (err, historyResults) => {
               if (err) {
                   console.error('Database query error:', err);
                   return res.status(500).send('Failed to record history');
@@ -316,7 +330,7 @@ app.get('/history/:nomor_aset/rusak', (req, res) => {
 });
 
 
-
+//melihat device sedang di bawa siapa
 app.get('/computers/:nomor_aset/borrowers', (req, res) => {
   const nomorAset = req.params.nomor_aset;
   console.log('Request for latest borrower received for computer: ', nomorAset);
@@ -394,17 +408,6 @@ app.get('/computers/:nomor_aset/history', (req, res) => {
   });
 });
 
-// Konfigurasi multer untuk menyimpan file
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); 
-  }
-});
-
-const upload = multer({ storage: storage });
 
 // Endpoint untuk membuat komputer baru dengan beberapa file foto
 app.post('/komputer', upload.array('foto', 10), (req, res) => {
