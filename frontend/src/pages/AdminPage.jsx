@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import{ useState } from 'react';
 import axios from 'axios';
 import HeroSection from '../components/HeroSection';
 import UpdateData from '../components/Admin/UpdateData';
@@ -10,54 +10,39 @@ import DeviceKantor from '../components/Admin/DeviceKantor';
 import AsetKantor from '../components/Admin/AsetKantor';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import IconButton from '@mui/material/IconButton';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import CancelIcon from '@mui/icons-material/Cancel';
+// <<<<<<< HEAD
+// import Dialog from '@mui/material/Dialog';
+// import DialogActions from '@mui/material/DialogActions';
+// import DialogContent from '@mui/material/DialogContent';
+// import DialogTitle from '@mui/material/DialogTitle';
+// import TextField from '@mui/material/TextField';
+// import MenuItem from '@mui/material/MenuItem';
+// import Button from '@mui/material/Button';
+// import Card from '@mui/material/Card';
+// import CardContent from '@mui/material/CardContent';
+// import IconButton from '@mui/material/IconButton';
+// import PhotoCamera from '@mui/icons-material/PhotoCamera';
+// import Grid from '@mui/material/Grid';
+// import Box from '@mui/material/Box';
+// import CancelIcon from '@mui/icons-material/Cancel';
 
 
-const statusOptions = [
-  { value: 'Aktif', label: 'Aktif' },
-  { value: 'Tidak Aktif', label: 'Tidak Aktif' },
-  { value: 'Perbaikan', label: 'Perbaikan' },
-  { value: 'Hilang', label: 'Hilang' },
-  { value: 'Tidak Terpakai', label: 'Tidak Terpakai' },
-];
+// const statusOptions = [
+//   { value: 'Aktif', label: 'Aktif' },
+//   { value: 'Tidak Aktif', label: 'Tidak Aktif' },
+//   { value: 'Perbaikan', label: 'Perbaikan' },
+//   { value: 'Hilang', label: 'Hilang' },
+//   { value: 'Tidak Terpakai', label: 'Tidak Terpakai' },
+// ];
+// =======
+import DeviceInputForm from '../components/Admin/DeviceInputForm';
+import DeviceUpdateForm from '../components/Admin/DeviceUpdateForm';
 
 const AdminPage = () => {
   const [filteredDevice, setFilteredDevice] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
-
-    nomor_aset: '',
-    jenis: '',
-    nama: '',
-    os: '',
-    manufaktur: '',
-    serial_number: '',
-    garansi: '',
-    status: '',
-    ram:'',
-    harddisk: '',
-    prosesor: '',
-    thn_pembelian: '',
-    nilai_pembelian: '',
-    mac: '',
-    foto: [],
-    deskripsi: '',
-  });
+  const [openForm, setOpenForm] = useState(false);
 
   const handleSearch = async (query) => {
     if (!query) {
@@ -67,11 +52,12 @@ const AdminPage = () => {
     }
     setError('');
     setLoading(true);
-
+  
     try {
+      // Mencari device
       const response = await axios.get(`http://localhost:5000/computers/${query}`);
       const result = response.data;
-
+  
       if (result.success && result.data) {
         setFilteredDevice(result.data);
       } else {
@@ -85,67 +71,59 @@ const AdminPage = () => {
     }
   };
 
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+  const handleOpenForm = () => {
+    setOpenForm(true);
   };
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    const fileURLs = files.map((file) => URL.createObjectURL(file));
-    setFormData({
-      ...formData,
-      foto: [...formData.foto, ...fileURLs],
-    });
+  const handleCloseForm = () => {
+    setOpenForm(false);
   };
 
-  const handleImageRemove = (index) => {
-    setFormData({
-      ...formData,
-      foto: formData.foto.filter((_, i) => i !== index),
-    });
-  };
+// <<<<<<< HEAD
+//   const handleImageRemove = (index) => {
+//     setFormData({
+//       ...formData,
+//       foto: formData.foto.filter((_, i) => i !== index),
+//     });
+//   };
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+//   const handleOpen = () => setOpen(true);
+//   const handleClose = () => setOpen(false);
 
-  const handleSubmit = async () => {
-    const data = new FormData();
+//   const handleSubmit = async () => {
+//     const data = new FormData();
     
-    for (const key in formData) {
-      if (key === 'foto') {
-        formData.foto.forEach((file) => {
-          data.append('foto', file); 
-        });
-      } else {
-        data.append(key, formData[key]);
-      }
-    }
+//     for (const key in formData) {
+//       if (key === 'foto') {
+//         formData.foto.forEach((file) => {
+//           data.append('foto', file); 
+//         });
+//       } else {
+//         data.append(key, formData[key]);
+//       }
+//     }
 
   
-    try {
-      const response = await axios.post('http://localhost:5000/komputer', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+//     try {
+//       const response = await axios.post('http://localhost:5000/komputer', data, {
+//         headers: {
+//           'Content-Type': 'multipart/form-data',
+//         },
+//       });
       
-      if (response.data.success) {
-        alert('Computer added successfully');
-      } else {
-        alert(response.data.message);
-      }
-    } catch (error) {
-      console.error('There was an error submitting the form!', error);
-      alert('Submission failed. Please try again.');
-    } finally {
-      handleClose();
-    }
-  };
+//       if (response.data.success) {
+//         alert('Computer added successfully');
+//       } else {
+//         alert(response.data.message);
+//       }
+//     } catch (error) {
+//       console.error('There was an error submitting the form!', error);
+//       alert('Submission failed. Please try again.');
+//     } finally {
+//       handleClose();
+//     }
+//   };
+
 
   return (
     <div>
@@ -174,14 +152,13 @@ const AdminPage = () => {
       <DeviceKantor />
       <UpdateData />
       <AsetKantor />
-
-      {/* Input Device Admin */}
       <SpeedDial
-        ariaLabel="SpeedDial example"
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        ariaLabel="Add Device"
+        sx={{ position: 'absolute', bottom: 16, right: 16 }}
         icon={<SpeedDialIcon />}
-        onClick={handleOpen}
+        onClick={handleOpenForm}
       />
+{/* <<<<<<< HEAD
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Input Device Details</DialogTitle>
@@ -405,6 +382,9 @@ const AdminPage = () => {
           <Button onClick={handleSubmit}>Submit</Button>
         </DialogActions>
       </Dialog>
+======= */}
+      <DeviceInputForm open={openForm} onClose={handleCloseForm} />
+{/* >>>>>>> 78a6206ad6ca4b81aad64bbd0db28652819ede0d */}
     </div>
   );
 };

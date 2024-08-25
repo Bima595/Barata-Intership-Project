@@ -1,5 +1,5 @@
 // src/FormComponent.js
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const FormComponent = () => {
   const [formData, setFormData] = useState({
