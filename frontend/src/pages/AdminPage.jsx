@@ -12,13 +12,16 @@ import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import FileCopyIcon from '@mui/icons-material/FileCopyOutlined';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DeviceInputForm from '../components/Admin/AddComponent/DeviceInputForm';
+import EmployeeInputForm from '../components/Admin/AddKaryawan/AddKaryawan';
 
 const AdminPage = () => {
   const [filteredDevice, setFilteredDevice] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [openForm, setOpenForm] = useState(false);
+  const [openDeviceForm, setOpenDeviceForm] = useState(false);
+  const [openEmployeeForm, setOpenEmployeeForm] = useState(false);
 
   const handleSearch = async (query) => {
     if (!query) {
@@ -28,31 +31,38 @@ const AdminPage = () => {
     }
     setError('');
     setLoading(true);
-  
+
     try {
-      // Mencari device
       const response = await axios.get(`http://localhost:5000/computers/${query}`);
       const result = response.data;
-  
+
       if (result.success && result.data) {
         setFilteredDevice(result.data);
       } else {
         setFilteredDevice({ deviceName: 'Device not found', details: {} });
       }
     } catch (error) {
-      console.error("There was an error fetching the data!", error);
+      console.error('There was an error fetching the data!', error);
       setFilteredDevice({ deviceName: 'Device not found', details: {} });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenForm = () => {
-    setOpenForm(true);
+  const handleOpenDeviceForm = () => {
+    setOpenDeviceForm(true);
   };
 
-  const handleCloseForm = () => {
-    setOpenForm(false);
+  const handleCloseDeviceForm = () => {
+    setOpenDeviceForm(false);
+  };
+
+  const handleOpenEmployeeForm = () => {
+    setOpenEmployeeForm(true);
+  };
+
+  const handleCloseEmployeeForm = () => {
+    setOpenEmployeeForm(false);
   };
 
   return (
@@ -74,8 +84,8 @@ const AdminPage = () => {
         ) : (
           <>
             <DeviceDetails device={filteredDevice} />
-            <HistoryPinjamLaptop nomorAset={filteredDevice.nomor_aset}/>
-            <HistoryKerusakanLaptop nomorAset={filteredDevice.nomor_aset}/>
+            <HistoryPinjamLaptop nomorAset={filteredDevice.nomor_aset} />
+            <HistoryKerusakanLaptop nomorAset={filteredDevice.nomor_aset} />
           </>
         ))
       )}
@@ -83,17 +93,23 @@ const AdminPage = () => {
       <UpdateData />
       <AsetKantor />
       <SpeedDial
-        ariaLabel="Add Device"
+        ariaLabel="Add Options"
         sx={{ position: 'fixed', bottom: 16, right: 16 }}
         icon={<SpeedDialIcon />}
       >
         <SpeedDialAction
           icon={<FileCopyIcon />}
           tooltipTitle="Add Device"
-          onClick={handleOpenForm}
+          onClick={handleOpenDeviceForm}
+        />
+        <SpeedDialAction
+          icon={<PersonAddIcon />}
+          tooltipTitle="Add Karyawan"
+          onClick={handleOpenEmployeeForm}
         />
       </SpeedDial>
-      <DeviceInputForm open={openForm} onClose={handleCloseForm} />
+      <DeviceInputForm open={openDeviceForm} onClose={handleCloseDeviceForm} />
+      <EmployeeInputForm open={openEmployeeForm} onClose={handleCloseEmployeeForm} />
     </div>
   );
 };

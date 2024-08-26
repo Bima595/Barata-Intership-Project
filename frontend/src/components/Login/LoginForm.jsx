@@ -58,12 +58,16 @@ const LoginForm = () => {
       });
 
       if (response.data.success) {
+        localStorage.setItem('jwtToken', response.data.token);
         login({ role: response.data.role });
+
         if (response.data.role === 'Admin') {
           navigate('/admin');
         } else if (response.data.role === 'Karyawan') {
           navigate('/karyawan');
         }
+      } else {
+        setError(response.data.message || 'Invalid login credentials');
       }
     } catch (error) {
       if (error.response && error.response.data.message) {
