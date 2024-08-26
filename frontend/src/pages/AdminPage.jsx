@@ -10,7 +10,7 @@ import DeviceKantor from '../components/Admin/DeviceKantor';
 import AsetKantor from '../components/Admin/AsetKantor';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
-import DeviceInputForm from '../components/Admin/DeviceInputForm';
+import DeviceInputForm from '../components/Admin/AddComponent/DeviceInputForm';
 
 const AdminPage = () => {
   const [filteredDevice, setFilteredDevice] = useState(null);

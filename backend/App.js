@@ -16,8 +16,8 @@ var db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'barata',
-  port: '3306',
+  database: 'barata2',
+  port: '8000',
 }); 
 
 db.connect(function (err) {
@@ -33,15 +33,16 @@ const karyawanData = JSON.parse(fs.readFileSync(karyawanFilePath, 'utf8'));
 
 // Konfigurasi multer untuk menyimpan file
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (req, file, cb) => { // Tambahkan `req` sebagai argumen pertama
     cb(null, 'uploads/');
   },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); 
+  filename: (req, file, cb) => { // Tambahkan `req` sebagai argumen pertama
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 
 const upload = multer({ storage: storage });
+
 
 //end point login
 app.post('/login', (req, res) => {
@@ -651,29 +652,36 @@ app.post('/komputer', upload.array('foto', 10), (req, res) => {
 app.put('/komputer/:nomor_aset', upload.array('foto', 10), (req, res) => {
   const currentNomorAset = req.params.nomor_aset;
   const newNomorAset = req.body.nomor_aset;
+  
+  // Ambil foto yang ada di database saat ini
+  const getCurrentPhotosQuery = 'SELECT foto FROM tb_komputer WHERE nomor_aset = ?';
 
-  // Check if the new nomor_aset already exists in the database
-  const checkQuery = 'SELECT nomor_aset FROM tb_komputer WHERE nomor_aset = ? AND nomor_aset != ?';
-
-  db.query(checkQuery, [newNomorAset, currentNomorAset], (err, results) => {
+  db.query(getCurrentPhotosQuery, [currentNomorAset], (err, results) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).send('Database query error');
     }
 
-    if (results.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nomor aset sudah ada di database. Tidak bisa mengupdate komputer dengan nomor aset yang sama.'
+    let existingPhotos = results[0].foto ? results[0].foto.split(',') : [];
+
+    // Hapus foto yang diminta
+    if (req.body.foto_hapus) {
+      const photosToDelete = req.body.foto_hapus.split(',');
+      existingPhotos = existingPhotos.filter(photo => !photosToDelete.includes(photo));
+
+      // Optional: Hapus file fisik dari sistem
+      photosToDelete.forEach(photo => {
+        fs.unlink(`uploads/${photo}`, (err) => {
+          if (err) console.error('Error deleting file:', err);
+        });
       });
     }
 
-    // Jika nomor_aset belum ada, lakukan operasi INSERT
-    const fileNames = req.files.map(file => file.filename); // Mendapatkan nama semua file
-    const foto = fileNames.join(','); // Menggabungkan nama file dengan tanda koma
-    
+    // Tambahkan foto baru (jika ada)
+    const newPhotos = req.files.map(file => file.filename);
+    const updatedPhotos = [...existingPhotos, ...newPhotos];
 
-    // If the check passes, proceed with the update
+    // Lakukan update data
     const updatedData = {
       nomor_aset: newNomorAset,
       jenis: req.body.jenis,
@@ -690,7 +698,7 @@ app.put('/komputer/:nomor_aset', upload.array('foto', 10), (req, res) => {
       thn_pembelian: req.body.thn_pembelian,
       nilai_pembelian: req.body.nilai_pembelian,
       mac: req.body.mac,
-      foto: req.file ? req.file.filename : req.body.foto,
+      foto: updatedPhotos.join(','), // Menyimpan daftar foto yang diperbarui
       deskripsi: req.body.deskripsi
     };
 
@@ -731,14 +739,27 @@ app.put('/komputer/:nomor_aset', upload.array('foto', 10), (req, res) => {
         return res.status(404).send('Computer not found');
       }
 
+      // Update aset table jika nomor_aset berubah
+      if (currentNomorAset !== newNomorAset) {
+        const updateAsetQuery = 'UPDATE aset SET komputer_id = (SELECT id FROM tb_komputer WHERE nomor_aset = ?) WHERE komputer_id = (SELECT id FROM tb_komputer WHERE nomor_aset = ?)';
+
+        db.query(updateAsetQuery, [newNomorAset, currentNomorAset], (err) => {
+          if (err) {
+            console.error('Database query error:', err);
+            return res.status(500).send('Database query error');
+          }
+        });
+      }
+
       res.json({
         success: true,
         message: 'Computer updated successfully',
         data: results,
       });
     });
-  })
+  });
 });
+
 
 //delete a komputer
 app.delete('/computers/:nomor_aset', (req, res) => {
