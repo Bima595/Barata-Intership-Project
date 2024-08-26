@@ -1,4 +1,4 @@
-import{ useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import HeroSection from '../components/HeroSection';
 import UpdateData from '../components/Admin/UpdateData';
@@ -10,6 +10,8 @@ import DeviceKantor from '../components/Admin/DeviceKantor';
 import AsetKantor from '../components/Admin/AsetKantor';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
+import SpeedDialAction from '@mui/material/SpeedDialAction';
+import FileCopyIcon from '@mui/icons-material/FileCopyOutlined';
 import DeviceInputForm from '../components/Admin/AddComponent/DeviceInputForm';
 
 const AdminPage = () => {
@@ -82,10 +84,15 @@ const AdminPage = () => {
       <AsetKantor />
       <SpeedDial
         ariaLabel="Add Device"
-        sx={{ position: 'absolute', bottom: 16, right: 16 }}
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
         icon={<SpeedDialIcon />}
-        onClick={handleOpenForm}
-      />
+      >
+        <SpeedDialAction
+          icon={<FileCopyIcon />}
+          tooltipTitle="Add Device"
+          onClick={handleOpenForm}
+        />
+      </SpeedDial>
       <DeviceInputForm open={openForm} onClose={handleCloseForm} />
     </div>
   );
