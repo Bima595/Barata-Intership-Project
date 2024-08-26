@@ -16,8 +16,8 @@ var db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'barata2',
-  port: '8000',
+  database: 'barata',
+  port: '3306',
 }); 
 
 db.connect(function (err) {
@@ -155,7 +155,7 @@ app.get('/computers/:identifier', (req, res) => {
     if (results.length > 0) {
       res.json({ success: true, data: results[0] });
     } else {
-      res.status(404).json({ success: false, message: 'Computer not found' });
+      res.status(404).json({ success: false, message: 'Perangkat Tidak Ditemukan' });
     }
   });
 });
@@ -177,7 +177,7 @@ app.get('/pengguna/:npk', (req, res) => {
     if (results.length > 0) {
       res.json({ success: true, data: results[0] });
     } else {
-      res.status(404).json({ success: false, message: 'Karyawan not found' });
+      res.status(404).json({ success: false, message: 'Karyawan tidak ditemukan' });
     }
   });
 });
@@ -248,7 +248,7 @@ app.get('/pengembalian/:identifier', (req, res) => {
         } else {
           res.status(404).json({
             success: false,
-            message: 'No user or assets found with this identifier'
+            message: 'Tidak ada pengguna atau aset yang ditemukan dengan pengenal ini'
           });
         }
       });
@@ -418,7 +418,7 @@ app.post('/return-device', upload.array('foto', 5), (req, res) => {
       } else {
           res.status(404).json({
               success: false,
-              message: `No active loan found for device ${nomor_aset}`,  
+              message: `Tidak ditemukan pinjaman aktif untuk perangkat ${nomor_aset}`,  
           });
       }
   });

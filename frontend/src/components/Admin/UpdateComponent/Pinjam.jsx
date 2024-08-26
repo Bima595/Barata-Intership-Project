@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Divider, Table, TableBody, TableCell, TableHead, TableRow, Alert
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Alert,
 } from '@mui/material';
 
 const Pinjam = ({ open, handleClose }) => {
@@ -11,6 +23,17 @@ const Pinjam = ({ open, handleClose }) => {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
 
+  useEffect(() => {
+    if (alertMessage) {
+      const timer = setTimeout(() => {
+        setAlertMessage('');
+      }, 5000);
+
+      // Cleanup the timer when the component is unmounted or when alertMessage changes
+      return () => clearTimeout(timer);
+    }
+  }, [alertMessage]);
+
   const handleSearch1 = () => {
     fetch(`http://localhost:5000/pengguna/${searchQuery1}`)
       .then((response) => response.json())
@@ -19,10 +42,15 @@ const Pinjam = ({ open, handleClose }) => {
           setResult1(data.data);
         } else {
           setResult1(null);
-          alert(data.message);
+          setAlertMessage(data.message);
+          setAlertSeverity('warning');
         }
       })
-      .catch((error) => console.error('Error:', error));
+      .catch((error) => {
+        console.error('Error:', error);
+        setAlertMessage('An error occurred while fetching the data.');
+        setAlertSeverity('error');
+      });
   };
 
   const handleSearch2 = () => {
@@ -33,15 +61,20 @@ const Pinjam = ({ open, handleClose }) => {
           setResult2(data.data);
         } else {
           setResult2(null);
-          alert(data.message);
+          setAlertMessage(data.message);
+          setAlertSeverity('warning');
         }
       })
-      .catch((error) => console.error('Error:', error));
+      .catch((error) => {
+        console.error('Error:', error);
+        setAlertMessage('Terjadi kesalahan saat mengambil data.');
+        setAlertSeverity('error');
+      });
   };
 
   const handleSubmit = () => {
     if (!result1 || !result2) {
-      setAlertMessage('Please search and select both a Karyawan and an Aset before submitting.');
+      setAlertMessage('Silakan cari dan pilih Karyawan dan Aset sebelum submit.');
       setAlertSeverity('warning');
       return;
     }
@@ -61,18 +94,27 @@ const Pinjam = ({ open, handleClose }) => {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          setAlertMessage('Device borrowed successfully!');
+          setAlertMessage('Perangkat Berhasil Dipinjam!');
           setAlertSeverity('success');
+          // Reset form after successful submission
+          resetForm();
         } else {
-          setAlertMessage(`Failed to borrow device: ${data.message}`);
+          setAlertMessage(`Gagal meminjam perangkat: ${data.message}`);
           setAlertSeverity('error');
         }
       })
       .catch((error) => {
         console.error('Error:', error);
-        setAlertMessage('An error occurred while borrowing the device.');
+        setAlertMessage('Terjadi kesalahan saat meminjam perangkat.');
         setAlertSeverity('error');
       });
+  };
+
+  const resetForm = () => {
+    setSearchQuery1('');
+    setSearchQuery2('');
+    setResult1(null);
+    setResult2(null);
   };
 
   return (
@@ -84,7 +126,7 @@ const Pinjam = ({ open, handleClose }) => {
             {alertMessage}
           </Alert>
         )}
-        
+
         {/* Search Section 1: Karyawan */}
         <TextField
           autoFocus
@@ -95,8 +137,10 @@ const Pinjam = ({ open, handleClose }) => {
           value={searchQuery1}
           onChange={(e) => setSearchQuery1(e.target.value)}
         />
-        <Button onClick={handleSearch1} color="primary" fullWidth>Search</Button>
-        
+        <Button onClick={handleSearch1} color="primary" fullWidth>
+          Search
+        </Button>
+
         {result1 && (
           <Table>
             <TableHead>
@@ -127,15 +171,17 @@ const Pinjam = ({ open, handleClose }) => {
           value={searchQuery2}
           onChange={(e) => setSearchQuery2(e.target.value)}
         />
-        <Button onClick={handleSearch2} color="primary" fullWidth>Search</Button>
-        
+        <Button onClick={handleSearch2} color="primary" fullWidth>
+          Search
+        </Button>
+
         {result2 && (
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Nomor Aset</TableCell>
                 <TableCell>Jenis</TableCell>
-                <TableCell>Device</TableCell> {/* Merged Nama and Model into Device */}
+                <TableCell>Device</TableCell>
                 <TableCell>Serial Number</TableCell>
               </TableRow>
             </TableHead>
@@ -143,7 +189,7 @@ const Pinjam = ({ open, handleClose }) => {
               <TableRow>
                 <TableCell>{result2.nomor_aset}</TableCell>
                 <TableCell>{result2.jenis}</TableCell>
-                <TableCell>{`${result2.nama} ${result2.model}`}</TableCell> {/* Merged data */}
+                <TableCell>{`${result2.nama} ${result2.model}`}</TableCell>
                 <TableCell>{result2.serial_number}</TableCell>
               </TableRow>
             </TableBody>
@@ -152,7 +198,9 @@ const Pinjam = ({ open, handleClose }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleSubmit} color="primary">Submit</Button>
+        <Button onClick={handleSubmit} color="primary">
+          Submit
+        </Button>
       </DialogActions>
     </Dialog>
   );
