@@ -20,10 +20,11 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PropTypes from 'prop-types';
 
 const statusOptions = [
-  { value: 'aktif', label: 'Aktif' },
-  { value: 'tidak aktif', label: 'Tidak Aktif' },
-  { value: 'hilang', label: 'Hilang' },
-  { value: 'rusak', label: 'Rusak' },
+  { value: 'Aktif', label: 'Aktif' },
+  { value: 'Tidak Aktif', label: 'Tidak Aktif' },
+  { value: 'Perbaikan', label: 'Perbaikan' },
+  { value: 'Hilang', label: 'Hilang' },
+  { value: 'Tidak Terpakai', label: 'Tidak Terpakai' },
 ];
 
 const DeviceInputForm = ({ open, onClose }) => {
