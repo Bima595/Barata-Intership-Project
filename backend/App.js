@@ -44,7 +44,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 
-//end point login
+const jwt = require('jsonwebtoken');
+
+// Secret key for signing the JWT
+const jwtSecret = 'your_secret_key';
+
+//Login
 app.post('/login', (req, res) => {
   const { userType, username, password, employeeId } = req.body;
 
@@ -55,18 +60,20 @@ app.post('/login', (req, res) => {
         return res.status(500).send('Database query error');
       }
       if (results.length > 0) {
-        res.json({ success: true, role: 'Admin' });
+        // Generate JWT token for Admin
+        const token = jwt.sign({ role: 'Admin' }, jwtSecret, { expiresIn: '1h' });
+        res.json({ success: true, role: 'Admin', token: token });
       } else {
-        res
-          .status(401)
-          .json({ success: false, message: 'Invalid admin credentials' });
+        res.status(401).json({ success: false, message: 'Invalid admin credentials' });
       }
     });
   } else if (userType === 'Karyawan') {
     // Check against dummy data first
     const karyawan = karyawanData.find(k => k.npk === employeeId);
     if (karyawan) {
-      res.json({ success: true, role: 'Karyawan' });
+      // Generate JWT token for Karyawan
+      const token = jwt.sign({ role: 'Karyawan' }, jwtSecret, { expiresIn: '1h' });
+      res.json({ success: true, role: 'Karyawan', token: token });
     } else {
       // If not found in JSON, check in the database
       const query = `SELECT * FROM pengguna WHERE npk = ? AND peran = 'Karyawan'`;
@@ -75,17 +82,59 @@ app.post('/login', (req, res) => {
           return res.status(500).send('Database query error');
         }
         if (results.length > 0) {
-          res.json({ success: true, role: 'Karyawan' });
+          // Generate JWT token for Karyawan
+          const token = jwt.sign({ role: 'Karyawan' }, jwtSecret, { expiresIn: '1h' });
+          res.json({ success: true, role: 'Karyawan', token: token });
         } else {
-          res
-            .status(401)
-            .json({ success: false, message: 'Invalid employee ID' });
+          res.status(401).json({ success: false, message: 'Invalid employee ID' });
         }
       });
     }
   } else {
     res.status(400).json({ success: false, message: 'Invalid user type' });
   }
+});
+
+// Middleware untuk memverifikasi JWT dan memastikan hanya admin yang bisa mengakses
+function verifyAdmin(req, res, next) {
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
+
+  jwt.verify(token, jwtSecret, (err, decoded) => {
+    if (err) {
+      console.error("JWT verification error:", err.message);
+      return res.status(401).json({ success: false, message: 'Failed to authenticate token' });
+    }
+    if (decoded.role !== 'Admin') {
+      return res.status(403).json({ success: false, message: 'Access forbidden: Admins only' });
+    }
+    next();
+  });
+}
+
+// Endpoint untuk menambahkan pengguna baru
+app.post('/add-user', verifyAdmin, (req, res) => {
+  const { nama, password, npk, peran, jabatan, unit_organisasi } = req.body;
+
+  // Validation: only adding Karyawan (not Admin)
+  if (peran !== 'Karyawan') {
+    return res.status(400).json({ success: false, message: 'Cannot add users with admin role' });
+  }
+
+  // Update the query to include 'jabatan' and 'unit_organisasi'
+  const query = `INSERT INTO pengguna (nama, password, npk, peran, jabatan, unit_organisasi) VALUES (?, ?, ?, ?, ?, ?)`;
+
+  // Update the values array to include 'jabatan' and 'unit_organisasi'
+  db.query(query, [nama, password, npk, peran, jabatan, unit_organisasi], (err, results) => {
+    if (err) {
+      return res.status(500).send('Database insert error');
+    }
+
+    res.json({ success: true, message: 'User added successfully' });
+  });
 });
 
 // Endpoint untuk mengambil semua komputer
