@@ -17,6 +17,7 @@
     "@mui/material": "^5.16.6",
     "axios": "^1.7.3",
     "express": "^4.19.2",
+    "mdb-react-ui-kit": "^8.0.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

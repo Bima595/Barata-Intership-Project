@@ -19,7 +19,6 @@ const KaryawanPage = () => {
     setLoading(true);
 
     try {
-      // Mengirim request ke backend untuk mencari data berdasarkan nomor aset
       const response = await axios.get(`http://localhost:5000/computers/${query}`);
       const result = response.data;
 
