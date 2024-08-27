@@ -760,6 +760,37 @@ app.put('/komputer/:nomor_aset', upload.array('foto', 10), (req, res) => {
   });
 });
 
+//delete foto komputer saat update
+app.delete('/komputer/:nomor_aset/foto', async (req, res) => {
+  const { nomor_aset } = req.params;
+  const { fileName } = req.body;
+
+  try {
+    const filePath = path.join(__dirname, 'uploads', fileName);
+    fs.unlinkSync(filePath);
+
+    const queryGet = 'SELECT foto FROM tb_komputer WHERE nomor_aset = ?';
+    db.query(queryGet, [nomor_aset], (err, results) => {
+      if (err) {
+        throw err;
+      }
+
+      let fotoList = results[0].foto ? results[0].foto.split(',') : [];
+      fotoList = fotoList.filter(foto => foto !== fileName);
+      const updatedFoto = fotoList.length > 0 ? fotoList.join(',') : null;
+      const queryUpdate = 'UPDATE tb_komputer SET foto = ? WHERE nomor_aset = ?';
+      db.query(queryUpdate, [updatedFoto, nomor_aset], (err) => {
+        if (err) {
+          throw err;
+        }
+        res.status(200).json({ success: true, message: 'Foto berhasil dihapus' });
+      });
+    });
+  } catch (error) {
+    console.error('Gagal Menghapus Foto:', error);
+    res.status(500).json({ success: false, message: 'Gagal menghapus foto' });
+  }
+});
 
 //delete a komputer
 app.delete('/computers/:nomor_aset', (req, res) => {
