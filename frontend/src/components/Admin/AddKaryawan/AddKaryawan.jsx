@@ -50,15 +50,16 @@ const EmployeeInputForm = ({ open, onClose }) => {
           onClose();
         }, 2000);
       } else {
-        setError(response.data.message || 'Terjadi kesalahan, coba lagi');
+        setError(response.data.message || 'NPK atau Nama sudah ada, coba lagi dengan data yang berbeda');
       }
     } catch (error) {
       console.error('Error adding employee:', error);
-      setError('Terjadi kesalahan, coba lagi');
+      setError('Terjadi kesalahan,Check apakah nama atau ');
     }
   };
 
   const handleSnackbarClose = () => {
+    setError('');
     setSuccess(false);
   };
 
@@ -100,7 +101,6 @@ const EmployeeInputForm = ({ open, onClose }) => {
             value={unitOrganisasi}
             onChange={(e) => setUnitOrganisasi(e.target.value)}
           />
-          {error && <p style={{ color: 'red' }}>{error}</p>}
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
@@ -108,6 +108,7 @@ const EmployeeInputForm = ({ open, onClose }) => {
         </DialogActions>
       </Dialog>
 
+      {/* Success Snackbar */}
       <Snackbar
         open={success}
         autoHideDuration={2000}
@@ -118,6 +119,18 @@ const EmployeeInputForm = ({ open, onClose }) => {
           Karyawan berhasil ditambahkan!
         </Alert>
       </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
@@ -125,7 +138,6 @@ const EmployeeInputForm = ({ open, onClose }) => {
 EmployeeInputForm.propTypes = {
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
-    showSuccessAnimation: PropTypes.func,
-  };
+};
 
 export default EmployeeInputForm;

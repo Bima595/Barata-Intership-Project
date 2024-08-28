@@ -48,3 +48,33 @@
     font-size: 0.875rem; /* Adjust as necessary */
   }
   
+.slide-left {
+  transform: translateX(100%);
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animated-text {
+  opacity: 0; /* Mulai dengan tidak terlihat */
+  animation: fadeInUp 1.5s ease-in-out forwards;
+}
+
+/* Animasi slide-right untuk gambar */
+.slide-right {
+  transform: translateX(100%);
+}
+
+@media (max-width: 767px) {
+  .hidden-mobile {
+    display: none;
+  }
+}
