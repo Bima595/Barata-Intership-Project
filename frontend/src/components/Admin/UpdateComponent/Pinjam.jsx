@@ -198,7 +198,7 @@ const Pinjam = ({ open, handleClose }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleSubmit} color="primary">
+        <Button onClick={handleSubmit || location.reload} color="primary">
           Submit
         </Button>
       </DialogActions>

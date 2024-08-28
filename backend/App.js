@@ -266,13 +266,20 @@ app.get('/pengembalian/:identifier', (req, res) => {
 
         const relevantAssets = assetResults.filter(asset => asset.pengguna_id === userResults[0].pengguna_id);
         
-        res.json({
-          success: true,
-          user: {
-            ...userResults[0],
-          },
-          assets: relevantAssets
-        });
+        if (relevantAssets.length > 0) {
+          res.json({
+            success: true,
+            user: {
+              ...userResults[0],
+            },
+            assets: relevantAssets
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+            message: 'Tidak ada pengguna atau aset yang ditemukan dengan pengenal ini'
+          });
+        }
       });
     } else {
       db.query(assetQuery, [identifier, identifier, identifier], (err, assetResults) => {

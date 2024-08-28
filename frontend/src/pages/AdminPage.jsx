@@ -89,8 +89,8 @@ const AdminPage = () => {
           </>
         ))
       )}
-      <DeviceKantor />
       <UpdateData />
+      <DeviceKantor />
       <AsetKantor />
       <SpeedDial
         ariaLabel="Add Options"
