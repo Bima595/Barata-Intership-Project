@@ -128,13 +128,21 @@ const DeviceKantor = () => {
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="min-h-[30rem]">
             {currentItems.map((item, index) => (
               <tr key={index} className="border-b">
                 <td className="p-2">{item.peminjam || 'Kosong'}</td>
                 <td className="p-2">{item.device}</td>
                 <td className="p-2">{item.status}</td>
                 <td className="p-2">{item.role || 'Kosong'}</td>
+              </tr>
+            ))}
+            {currentItems.length < itemsPerPage && Array(itemsPerPage - currentItems.length).fill().map((_, index) => (
+              <tr key={`empty-${index}`} className="border-b">
+                <td className="p-2">&nbsp;</td>
+                <td className="p-2">&nbsp;</td>
+                <td className="p-2">&nbsp;</td>
+                <td className="p-2">&nbsp;</td>
               </tr>
             ))}
           </tbody>

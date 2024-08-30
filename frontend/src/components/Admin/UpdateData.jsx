@@ -16,9 +16,10 @@ const UpdateData = () => {
   };
 
   return (
-    <div className="flex items-center justify-center p-2 mb-20">
+    <div className="flex items-center justify-center p-2 mb-20 mt-40">
       <div className="bg-white p-2 rounded-lg w-full max-w-lg space-y-4">
         <h1 className="text-2xl font-bold text-center mb-4">Update Data</h1>
+        <div className="mt-2 mx-auto w-1/2 sm:w-1/3 lg:w-1/2 h-0.5 bg-gray-300"></div>
 
         <div className="grid grid-cols-2 gap-6 md:gap-4">
           <button

@@ -297,65 +297,66 @@ app.get('/pengembalian/:identifier', (req, res) => {
     }
 
     if (userResults.length > 0) {
-      db.query(
-        assetQuery,
-        [identifier, identifier, identifier],
-        (err, assetResults) => {
-          if (err) {
-            console.error('Database query error (asset):', err);
-            return res.status(500).send('Database query error');
-          }
+      // User found with the given NPK
+      db.query(assetQuery, [identifier, identifier, identifier], (err, assetResults) => {
+        if (err) {
+          console.error('Database query error (asset):', err);
+          return res.status(500).send('Database query error');
+        }
 
-          const relevantAssets = assetResults.filter(
-            (asset) => asset.pengguna_id === userResults[0].pengguna_id
-          );
-
+        const relevantAssets = assetResults.filter(asset => asset.pengguna_id === userResults[0].pengguna_id);
+        
+        if (relevantAssets.length > 0) {
+          // User has borrowed assets
           res.json({
             success: true,
             user: {
               ...userResults[0],
             },
-            assets: relevantAssets,
+            assets: relevantAssets
+          });
+        } else {
+          // User found but has not borrowed any assets
+          res.status(404).json({
+            success: false,
+            message: 'Tidak ada pengguna atau aset yang ditemukan dengan pengenal ini'
           });
         }
-      );
+      });
     } else {
-      db.query(
-        assetQuery,
-        [identifier, identifier, identifier],
-        (err, assetResults) => {
-          if (err) {
-            console.error('Database query error (asset):', err);
-            return res.status(500).send('Database query error');
-          }
-
-          if (assetResults.length > 0) {
-            const users = new Set(
-              assetResults.map((asset) => ({
-                nama: asset.peminjam_nama,
-                npk: asset.peminjam_npk,
-                jabatan: asset.peminjam_jabatan,
-              }))
-            );
-            const usersList = Array.from(users);
-
-            res.json({
-              success: true,
-              user: usersList.length > 0 ? usersList[0] : null,
-              assets: assetResults,
-            });
-          } else {
-            res.status(404).json({
-              success: false,
-              message:
-                'Tidak ada pengguna atau aset yang ditemukan dengan pengenal ini',
-            });
-          }
+      // User not found, check for asset by nomor_aset or serial_number
+      db.query(assetQuery, [identifier, identifier, identifier], (err, assetResults) => {
+        if (err) {
+          console.error('Database query error (asset):', err);
+          return res.status(500).send('Database query error');
         }
-      );
+
+        if (assetResults.length > 0) {
+          // Asset found, return asset details and borrower info
+          const users = new Set(assetResults.map(asset => ({
+            nama: asset.peminjam_nama,
+            npk: asset.peminjam_npk,
+            jabatan: asset.peminjam_jabatan
+          })));
+          const usersList = Array.from(users);
+
+          res.json({
+            success: true,
+            user: usersList.length > 0 ? usersList[0] : null,
+            assets: assetResults
+          });
+        } else {
+          // No user or asset found with the given identifier
+          res.status(404).json({
+            success: false,
+            message: 'Tidak ada pengguna atau aset yang ditemukan dengan pengenal ini'
+          });
+        }
+      });
     }
   });
 });
+
 
 //endpoint pinjam device
 app.post('/borrow-device', (req, res) => {
