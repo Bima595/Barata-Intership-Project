@@ -15,6 +15,7 @@ import FileCopyIcon from '@mui/icons-material/FileCopyOutlined';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DeviceInputForm from '../components/Admin/AddComponent/DeviceInputForm';
 import EmployeeInputForm from '../components/Admin/AddKaryawan/AddKaryawan';
+// import Footer from '../components/Footer';
 
 const AdminPage = () => {
   const [filteredDevice, setFilteredDevice] = useState(null);
@@ -110,6 +111,7 @@ const AdminPage = () => {
       </SpeedDial>
       <DeviceInputForm open={openDeviceForm} onClose={handleCloseDeviceForm} />
       <EmployeeInputForm open={openEmployeeForm} onClose={handleCloseEmployeeForm} />
+      {/* <Footer /> */}
     </div>
   );
 };
