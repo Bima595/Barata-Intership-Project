@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import UpdateComputers from './UpdateComponent/UpdateComputers'; 
 import Pinjam from './UpdateComponent/Pinjam'; 
 import PengembalianKantor from './UpdateComponent/PengembalianKantor'; 

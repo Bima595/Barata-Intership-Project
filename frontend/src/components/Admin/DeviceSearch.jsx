@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
-import { Box, Typography, Button } from '@mui/material';
-import { useMediaQuery } from '@mui/material';
+import { Box, Typography, Button, useMediaQuery } from '@mui/material';
 
 const DeviceDetails = ({ device }) => {
   const isMobile = useMediaQuery('(max-width:600px)'); // Adjust breakpoint as needed

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -81,10 +81,12 @@ const UpdateComputers = ({ open, handleClose }) => {
   const handleSearch = async () => {
     if (searchTerm) {
       try {
-        const response = await fetch(`http://localhost:5000/computers/${searchTerm}`);
-        const contentType = response.headers.get("content-type");
+        const response = await fetch(
+          `http://localhost:5000/computers/${searchTerm}`
+        );
+        const contentType = response.headers.get('content-type');
 
-        if (contentType && contentType.includes("application/json")) {
+        if (contentType && contentType.includes('application/json')) {
           const data = await response.json();
           if (data.success) {
             setSearchResult(data.data);
@@ -96,12 +98,16 @@ const UpdateComputers = ({ open, handleClose }) => {
               manufaktur: data.data.manufaktur || '',
               model: data.data.model || '',
               serial_number: data.data.serial_number || '',
-              garansi: data.data.garansi ? new Date(data.data.garansi).toISOString().split('T')[0] : '',
+              garansi: data.data.garansi
+                ? new Date(data.data.garansi).toISOString().split('T')[0]
+                : '',
               status: data.data.status || '',
               ram: data.data.ram || '',
               harddisk: data.data.harddisk || '',
               prosesor: data.data.prosesor || '',
-              thn_pembelian: data.data.thn_pembelian ? new Date(data.data.thn_pembelian).toISOString().split('T')[0] : '',
+              thn_pembelian: data.data.thn_pembelian
+                ? new Date(data.data.thn_pembelian).toISOString().split('T')[0]
+                : '',
               nilai_pembelian: data.data.nilai_pembelian || '',
               mac: data.data.mac || '',
               foto: data.data.foto ? data.data.foto.split(',') : [], // URL dari backend
@@ -138,26 +144,32 @@ const UpdateComputers = ({ open, handleClose }) => {
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
-    setFormData((prevData) => ({ ...prevData, foto: [...prevData.foto, ...files] }));
+    setFormData((prevData) => ({
+      ...prevData,
+      foto: [...prevData.foto, ...files],
+    }));
   };
 
   const handleImageRemove = async (index) => {
     const fileToRemove = formData.foto[index];
-    
+
     if (typeof fileToRemove === 'string') {
       try {
-        const response = await fetch(`http://localhost:5000/komputer/${formData.nomor_aset}/foto`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ fileName: fileToRemove }),
-        });
-  
+        const response = await fetch(
+          `http://localhost:5000/komputer/${formData.nomor_aset}/foto`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ fileName: fileToRemove }),
+          }
+        );
+
         if (!response.ok) {
           throw new Error('Gagal menghapus foto dari server');
         }
-  
+
         setFormData((prevData) => {
           const newFotos = [...prevData.foto];
           newFotos.splice(index, 1);
@@ -188,10 +200,13 @@ const UpdateComputers = ({ open, handleClose }) => {
         }
       });
 
-      const response = await fetch(`http://localhost:5000/komputer/${formData.nomor_aset}`, {
-        method: 'PUT',
-        body: formDataToSend,
-      });
+      const response = await fetch(
+        `http://localhost:5000/komputer/${formData.nomor_aset}`,
+        {
+          method: 'PUT',
+          body: formDataToSend,
+        }
+      );
 
       if (response.headers.get('Content-Type')?.includes('application/json')) {
         const result = await response.json();
@@ -242,20 +257,42 @@ const UpdateComputers = ({ open, handleClose }) => {
           <>
             <Grid container spacing={2} sx={{ marginTop: 2 }}>
               {[
-                { label: 'Nomor Aset', name: 'nomor_aset', type: 'text', disabled: true },
+                {
+                  label: 'Nomor Aset',
+                  name: 'nomor_aset',
+                  type: 'text',
+                  disabled: true,
+                },
                 { label: 'Jenis', name: 'jenis', type: 'text' },
                 { label: 'Nama', name: 'nama', type: 'text' },
                 { label: 'Operating System (OS)', name: 'os', type: 'text' },
                 { label: 'Manufaktur', name: 'manufaktur', type: 'text' },
                 { label: 'Model', name: 'model', type: 'text' },
-                { label: 'Serial Number (SN)', name: 'serial_number', type: 'text' },
+                {
+                  label: 'Serial Number (SN)',
+                  name: 'serial_number',
+                  type: 'text',
+                },
                 { label: 'Masa Garansi', name: 'garansi', type: 'date' },
-                { label: 'Status Perangkat', name: 'status', type: 'select', options: statusOptions },
+                {
+                  label: 'Status Perangkat',
+                  name: 'status',
+                  type: 'select',
+                  options: statusOptions,
+                },
                 { label: 'Ram (GB)', name: 'ram', type: 'number' },
                 { label: 'Harddisk (GB)', name: 'harddisk', type: 'number' },
                 { label: 'Prosesor', name: 'prosesor', type: 'text' },
-                { label: 'Tahun Pembelian', name: 'thn_pembelian', type: 'date' },
-                { label: 'Nilai Pembelian (Rp)', name: 'nilai_pembelian', type: 'text' },
+                {
+                  label: 'Tahun Pembelian',
+                  name: 'thn_pembelian',
+                  type: 'date',
+                },
+                {
+                  label: 'Nilai Pembelian (Rp)',
+                  name: 'nilai_pembelian',
+                  type: 'text',
+                },
                 { label: 'MAC Address', name: 'mac', type: 'text' },
                 { label: 'Deskripsi', name: 'deskripsi', type: 'textarea' },
               ].map(({ label, name, type, options }) => (
@@ -313,7 +350,10 @@ const UpdateComputers = ({ open, handleClose }) => {
                 </Button>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', marginTop: 2 }}>
                   {formData.foto.map((image, index) => (
-                    <Card key={index} sx={{ maxWidth: 150, marginRight: 1, marginBottom: 1 }}>
+                    <Card
+                      key={index}
+                      sx={{ maxWidth: 150, marginRight: 1, marginBottom: 1 }}
+                    >
                       <CardContent sx={{ position: 'relative', padding: 0 }}>
                         <img
                           src={

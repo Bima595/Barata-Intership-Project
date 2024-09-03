@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Dialog,
   DialogTitle,
@@ -29,7 +30,6 @@ const Pinjam = ({ open, handleClose }) => {
         setAlertMessage('');
       }, 5000);
 
-      // Cleanup the timer when the component is unmounted or when alertMessage changes
       return () => clearTimeout(timer);
     }
   }, [alertMessage]);
@@ -96,7 +96,6 @@ const Pinjam = ({ open, handleClose }) => {
         if (data.success) {
           setAlertMessage('Perangkat Berhasil Dipinjam!');
           setAlertSeverity('success');
-          // Reset form after successful submission
           resetForm();
         } else {
           setAlertMessage(`Gagal meminjam perangkat: ${data.message}`);
@@ -204,6 +203,11 @@ const Pinjam = ({ open, handleClose }) => {
       </DialogActions>
     </Dialog>
   );
+};
+
+Pinjam.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleClose: PropTypes.func.isRequired,
 };
 
 export default Pinjam;
