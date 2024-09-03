@@ -5,6 +5,8 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const PizZip = require('pizzip');
+const Docxtemplater = require('docxtemplater');
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,8 +18,8 @@ var db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'barata2',
-  port: '8000',
+  database: 'barata',
+  port: '3306',
 });
 
 db.connect(function (err) {
@@ -357,6 +359,185 @@ app.get('/pengembalian/:identifier', (req, res) => {
   });
 });
 
+//Mencari NPK saja, dengan hasil Aset yang sedang dipinjam
+app.get('/pengguna/pinjam/:npk', (req, res) => {
+  const npk = req.params.npk;
+
+  const userQuery = `
+    SELECT * 
+    FROM pengguna 
+    WHERE npk = ? AND peran = "Karyawan"
+  `;
+
+  const assetQuery = `
+    SELECT k.*, a.*, p.*, u.nama AS peminjam_nama, u.npk AS peminjam_npk, u.jabatan AS peminjam_jabatan
+    FROM tb_komputer k
+    JOIN aset a ON k.id_komputer = a.komputer_id
+    JOIN peminjam p ON a.aset_id = p.aset_id
+    JOIN pengguna u ON p.pengguna_id = u.pengguna_id
+    WHERE u.npk = ? AND p.tgl_pengembalian IS NULL
+  `;
+
+  db.query(userQuery, [npk], (err, userResults) => {
+    if (err) {
+      console.error('Database query error (user):', err);
+      return res.status(500).send('Database query error');
+    }
+
+    if (userResults.length > 0) {
+      // User found with the given NPK
+      db.query(assetQuery, [npk], (err, assetResults) => {
+        if (err) {
+          console.error('Database query error (asset):', err);
+          return res.status(500).send('Database query error');
+        }
+
+        if (assetResults.length > 0) {
+          res.json({
+            success: true,
+            user: {
+              ...userResults[0],
+            },
+            assets: assetResults
+          });
+        } else {
+          res.json({
+            success: true,
+            user: {
+              ...userResults[0],
+            },
+            message: 'Pengguna tidak meminjam laptop'
+          });
+        }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Pengguna tidak ditemukan'
+      });
+    }
+  });
+});
+
+// Serah Terima Aset
+app.post('/transfer-device', upload.array('foto', 5), (req, res) => {
+  const { npk1, npk2, nomor_aset, deskripsi } = req.body;
+  const fotoFiles = req.files || [];
+  const foto = fotoFiles.map((file) => file.filename).join(', '); // Menggabungkan nama file foto dengan koma
+
+  // Step 1: Validate if npk1 and npk2 exist in pengguna table
+  const checkUserQuery = 'SELECT pengguna_id FROM pengguna WHERE npk = ?';
+  db.query(checkUserQuery, [npk1], (err, userResults1) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).send('Database query error');
+    }
+
+    if (userResults1.length === 0) {
+      return res.status(404).json({ success: false, message: 'Pengguna pertama tidak ditemukan' });
+    }
+
+    const penggunaId1 = userResults1[0].pengguna_id;
+
+    db.query(checkUserQuery, [npk2], (err, userResults2) => {
+      if (err) {
+        console.error('Database query error:', err);
+        return res.status(500).send('Database query error');
+      }
+
+      if (userResults2.length === 0) {
+        return res.status(404).json({ success: false, message: 'Pengguna kedua tidak ditemukan' });
+      }
+
+      const penggunaId2 = userResults2[0].pengguna_id;
+
+      // Step 2: Return the device from penggunaId1
+      const checkLoanQuery = `
+        SELECT p.peminjam_id, a.aset_id, k.status
+        FROM peminjam p
+        JOIN aset a ON p.aset_id = a.aset_id
+        JOIN tb_komputer k ON a.komputer_id = k.id_komputer
+        WHERE k.nomor_aset = ? AND p.pengguna_id = ? AND p.tgl_pengembalian IS NULL
+      `;
+
+      db.query(checkLoanQuery, [nomor_aset, penggunaId1], (err, results) => {
+        if (err) {
+          console.error('Database query error:', err);
+          return res.status(500).send('Database query error');
+        }
+
+        if (results.length > 0) {
+          const peminjam_id = results[0].peminjam_id;
+          const aset_id = results[0].aset_id; // Extract aset_id from query result
+
+          const updateLoanQuery = `
+            UPDATE peminjam 
+            SET tgl_pengembalian = NOW() 
+            WHERE peminjam_id = ?
+          `;
+
+          db.query(updateLoanQuery, [peminjam_id], (err) => {
+            if (err) {
+              console.error('Database query error:', err);
+              return res.status(500).send('Gagal mengembalikan aset');
+            }
+
+            // Step 3: Insert history entry
+            const insertHistoryQuery = `
+              INSERT INTO history (peminjam_id, deskripsi, foto) 
+              VALUES (?, ?, ?)
+            `;
+
+            db.query(insertHistoryQuery, [peminjam_id, deskripsi || null, foto], (err) => {
+              if (err) {
+                console.error('Database query error:', err);
+                return res.status(500).send('Gagal mencatat riwayat');
+              }
+
+              // Step 4: Borrow the device to penggunaId2
+              const tgl_peminjaman = new Date();
+              const insertLoanQuery = `
+                INSERT INTO peminjam (aset_id, pengguna_id, tgl_peminjaman) 
+                VALUES (?, ?, ?)
+              `;
+
+              db.query(insertLoanQuery, [aset_id, penggunaId2, tgl_peminjaman], (err) => {
+                if (err) {
+                  console.error('Database query error:', err);
+                  return res.status(500).send('Gagal meminjamkan aset ke pengguna kedua');
+                }
+
+                // Step 5: Update device status to 'Aktif'
+                const updateStatusQuery = `
+                  UPDATE tb_komputer 
+                  SET status = 'Aktif' 
+                  WHERE nomor_aset = ?
+                `;
+
+                db.query(updateStatusQuery, [nomor_aset], (err) => {
+                  if (err) {
+                    console.error('Failed to update device status:', err);
+                    return res.status(500).send('Gagal mengupdate status perangkat');
+                  }
+
+                  res.json({
+                    success: true,
+                    message: 'Serah terima aset berhasil dan riwayat telah tercatat.',
+                  });
+                });
+              });
+            });
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+            message: `Pengguna pertama tidak memiliki pinjaman aktif untuk perangkat ${nomor_aset}`,
+          });
+        }
+      });
+    });
+  });
+});
 
 //endpoint pinjam device
 app.post('/borrow-device', (req, res) => {
@@ -923,19 +1104,257 @@ app.delete('/komputer/:nomor_aset/foto', async (req, res) => {
 });
 
 //delete a komputer
-app.delete('/computers/:nomor_aset', (req, res) => {
+app.delete('/delete-computers/:nomor_aset', (req, res) => {
   const nomorAset = req.params.nomor_aset;
-  const query = 'DELETE FROM tb_komputer WHERE nomor_aset = ?';
-  db.query(query, [nomorAset], (err, results) => {
+
+  // Step 1: Find the aset_id from tb_komputer and link it to aset
+  const findAsetIdQuery = `
+    SELECT aset.aset_id
+    FROM tb_komputer
+    INNER JOIN aset ON tb_komputer.id_komputer = aset.komputer_id
+    WHERE tb_komputer.nomor_aset = ?
+  `;
+
+  db.query(findAsetIdQuery, [nomorAset], (err, results) => {
     if (err) {
-      return res.status(500).send('Database query error');
+      console.error('Error executing findAsetIdQuery:', err); // Log detailed error
+      return res.status(500).json({
+        success: false,
+        message: 'Database query error while finding aset_id',
+      });
     }
-    res.json({
-      success: true,
-      message: 'Computer deleted successfully',
-      data: results,
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Computer not found',
+      });
+    }
+
+    const asetId = results[0].aset_id;
+
+    // Step 2: Check if the aset_id exists in peminjam
+    const checkPeminjamQuery = 'SELECT * FROM peminjam WHERE aset_id = ?';
+    db.query(checkPeminjamQuery, [asetId], (err, results) => {
+      if (err) {
+        console.error('Error executing checkPeminjamQuery:', err); // Log detailed error
+        return res.status(500).json({
+          success: false,
+          message: 'Database query error while checking peminjam',
+        });
+      }
+
+      // If the aset_id is found in peminjam, it cannot be deleted
+      if (results.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot delete computer; it is currently borrowed',
+        });
+      }
+
+      // Step 3: Proceed to delete from both tb_komputer and aset
+      //const deleteKomputerQuery = 'DELETE FROM tb_komputer WHERE nomor_aset = ?';
+      //const deleteAsetQuery = 'DELETE FROM aset WHERE aset_id = ?';
+
+      // Start a transaction
+      db.beginTransaction((err) => {
+        if (err) {
+            console.error('Transaction start error:', err);
+            return res.status(500).json({ success: false, message: 'Transaction error' });
+        }
+
+        const deleteAsetQuery = `
+            DELETE FROM aset WHERE komputer_id = (
+                SELECT id_komputer FROM tb_komputer WHERE nomor_aset = ?
+            )
+        `;
+        db.query(deleteAsetQuery, [nomorAset], (err, results) => {
+            if (err) {
+                console.error('Error executing deleteAsetQuery:', err);
+                return db.rollback(() => {
+                    res.status(500).json({ success: false, message: 'Error deleting from aset' });
+                });
+            }
+
+            const deleteKomputerQuery = 'DELETE FROM tb_komputer WHERE nomor_aset = ?';
+            db.query(deleteKomputerQuery, [nomorAset], (err, results) => {
+                if (err) {
+                    console.error('Error executing deleteKomputerQuery:', err);
+                    return db.rollback(() => {
+                        res.status(500).json({ success: false, message: 'Error deleting from tb_komputer' });
+                    });
+                }
+
+                db.commit((err) => {
+                    if (err) {
+                        console.error('Transaction commit error:', err);
+                        return db.rollback(() => {
+                            res.status(500).json({ success: false, message: 'Transaction commit error' });
+                        });
+                    }
+
+                    res.json({ success: true, message: 'Computer and related asset deleted successfully' });
+                });
+            });
+        });
+      });
     });
   });
+});
+
+app.use(express.json());
+//Start Surat Keterangan Serah Terima
+const templateDirectory = path.join(__dirname, '/SK');
+const outputDirectory1 = path.join(__dirname, '/Hasil_SK');
+const outputDirectory2 = path.join(__dirname, '/Download_SK');
+
+// Helper function to format dates
+const formatDate = (date) => {
+  const months = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
+};
+
+// Helper function to generate unique file names
+const generateUniqueFileName = (dir, baseName, ext) => {
+  let fileName = baseName + ext;
+  let counter = 1;
+
+  while (fs.existsSync(path.join(dir, fileName))) {
+    fileName = `${baseName}${counter}${ext}`;
+    counter++;
+  }
+
+  return fileName;
+};
+
+// API route to handle Word template filling
+app.post('/word-template', async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data) {
+      return res.status(400).json({ success: false, error: 'Data tidak lengkap.' });
+    }
+
+    const templatePath = path.join(templateDirectory, 'SKST.docx');
+
+    if (!fs.existsSync(templatePath)) {
+      return res.status(404).json({ success: false, error: 'Template file tidak ditemukan.' });
+    }
+
+    const content = fs.readFileSync(templatePath, 'binary');
+    const zip = new PizZip(content);
+    const doc = new Docxtemplater(zip);
+
+    const currentDate = formatDate(new Date());
+
+    // Prepare data for template rendering
+    doc.render({
+      tglSurat: currentDate,
+      namaKaryawan1: data.namaKaryawan1 || '',
+      npk1: data.npk1 || '',
+      jabatan1: data.jabatan1 || '',
+      unitOrganisasi1: data.unitOrganisasi1 || '',
+      namaKaryawan2: data.namaKaryawan2 || '',
+      npk2: data.npk2 || '',
+      jabatan2: data.jabatan2 || '',
+      unitOrganisasi2: data.unitOrganisasi2 || '',
+      namaLaptop: data.namaLaptop || '',
+      model: data.model || '',
+      serialNumber: data.serialNumber || '',
+      os: data.os || '',
+      prosesor: data.prosesor || '',
+      ram: data.ram || '',
+      harddisk: data.harddisk || '',
+      thnPembelian: data.thnPembelian || '',
+      deskripsi: data.deskripsi || ''
+    });
+
+    const buffer = doc.getZip().generate({ type: 'nodebuffer' });
+
+    // Generate file names based on npk2 value
+    const npk2 = data.npk2 || 'undefined';
+    const outputFileName = `${npk2}_SKST.docx`;
+
+    // Generate unique file names for both output directories
+    const uniqueFileName1 = generateUniqueFileName(outputDirectory1, npk2 + '_SKST', '.docx');
+    const uniqueFileName2 = generateUniqueFileName(outputDirectory2, npk2 + '_SKST', '.docx');
+
+    const outputPath1 = path.join(outputDirectory1, uniqueFileName1);
+    const outputPath2 = path.join(outputDirectory2, uniqueFileName2);
+
+    // Write files to both output directories
+    fs.writeFileSync(outputPath1, buffer);
+    fs.writeFileSync(outputPath2, buffer);
+
+    res.json({ 
+      success: true, 
+      message: 'Files berhasil dibuat dan disimpan.', 
+      files: {
+        hasil_sk: outputPath1,
+        download_sk: uniqueFileName2
+      }
+    });
+  } catch (error) {
+    console.error('Error processing Word file:', error);
+    res.status(500).json({ success: false, error: 'Gagal memproses file Word.' });
+  }
+});
+
+// Endpoint untuk mengunduh file
+app.get('/download', (req, res) => {
+  try {
+    const files = fs.readdirSync(outputDirectory2);
+    if (files.length === 0) {
+      return res.status(404).json({ success: false, error: 'Tidak ada file untuk diunduh.' });
+    }
+
+    const fileName = files[0];
+    const filePath = path.join(outputDirectory2, fileName);
+
+    // Set headers to ensure the browser uses the original file name
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        return res.status(500).json({ success: false, error: 'Gagal mengunduh file.' });
+      }
+
+      // Delete the file after a successful download
+      fs.unlinkSync(filePath);
+    });
+  } catch (error) {
+    console.error('Error handling download:', error);
+    res.status(500).json({ success: false, error: 'Gagal memproses permintaan unduhan.' });
+  }
+});
+
+// Endpoint untuk menghapus file di direktori Download_SK
+app.delete('/delete', (req, res) => {
+  try {
+    const files = fs.readdirSync(outputDirectory2);
+    if (files.length === 0) {
+      return res.status(404).json({ success: false, error: 'Tidak ada file untuk dihapus.' });
+    }
+
+    const fileName = files[0]; // Mengambil file pertama
+    const filePath = path.join(outputDirectory2, fileName);
+
+    // Hapus file
+    fs.unlinkSync(filePath);
+
+    res.json({ success: true, message: 'File berhasil dihapus.' });
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    res.status(500).json({ success: false, error: 'Gagal menghapus file.' });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
