@@ -54,7 +54,7 @@ const DeviceDetails = ({ device }) => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" mb={5} p={3}>
-      <Card sx={{ width: '100%', mb: 5, bgcolor: '#f0f0f0' }}>
+      <Card sx={{ width: '100%', mb: 5, bgcolor: '#F5F7F8' }}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
             {fotoArray.length > 0 ? (
@@ -74,7 +74,11 @@ const DeviceDetails = ({ device }) => {
                     padding="10px"
                     position="relative"
                     overflow="hidden"
-                    style={{ paddingTop: '75%' }} 
+                    style={{
+                      paddingTop: '75%',
+                      marginTop: '20px', // Adds gap at the top
+                      marginLeft: '20px',
+                    }}
                   >
                     <img
                       src={`http://localhost:5000/uploads/${fileName}`}

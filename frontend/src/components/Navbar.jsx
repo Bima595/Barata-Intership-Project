@@ -1,12 +1,13 @@
-// /components/Navbar.jsx
 import { useState } from 'react';
 import { useAuth } from '../components/Login/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { auth, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -17,14 +18,19 @@ const Navbar = () => {
     navigate('/');
   };
 
+  // Cek apakah path saat ini adalah halaman admin
+  const isAdminPage = location.pathname.includes('/admin');
+
   return (
     <nav className="fixed top-0 left-0 w-full text-black bg-gray-100 z-50" style={{ backgroundColor: "#F5F7FA" }}>
       <div className="container mx-auto flex justify-between items-center py-4 px-6">
         <div className="text-xl font-bold" style={{ color: "#29166F" }}>OfficeTech.</div>
         <div className="hidden md:flex space-x-4">
-          <a href="#" className="hover:underline">Home</a>
-          <a href="#DeviceKantor" className="hover:underline">Data Table</a>
-          <a href="/input" className="hover:underline">Input</a>
+          <Link to="/" className="hover:underline">Home</Link>
+          <Link to="#DeviceKantor" className="hover:underline">Data Table</Link>
+          {!isAdminPage && (
+            <Link to="/input" className="hover:underline">Input</Link>
+          )}
           {auth && (
             <button onClick={handleLogout} className="text-red-500 hover:underline">
               Log Out
@@ -41,9 +47,11 @@ const Navbar = () => {
       </div>
       {isOpen && (
         <div className="md:hidden bg-gray-100 py-4 px-6">
-          <a href="#" className="block py-2 hover:underline">Home</a>
-          <a href="#DeviceKantor" className="block py-2 hover:underline">Data Table</a>
-          <a href="/input" className="hover:underline">Input</a>
+          <Link to="/" className="block py-2 hover:underline">Home</Link>
+          <Link to="#DeviceKantor" className="block py-2 hover:underline">Data Table</Link>
+          {!isAdminPage && (
+            <Link to="/input" className="block py-2 hover:underline">Input</Link>
+          )}
           {auth && (
             <button onClick={handleLogout} className="text-red-500 hover:underline block mt-4">
               Log Out

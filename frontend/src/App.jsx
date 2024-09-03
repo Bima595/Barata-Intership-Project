@@ -13,7 +13,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/admin" element={<PrivateRoute element={<AdminPage />} requiredRole="Admin" />} />
-          <Route path="/input" element={<PrivateRoute element={<InputPage />} requiredRole="Admin" />} />
+          <Route path="/input" element={<PrivateRoute element={<InputPage />} requiredRole="Karyawan" />} />
           <Route path="/karyawan" element={<PrivateRoute element={<KaryawanPage />} requiredRole="Karyawan" />} />
         </Routes>
       </Router>

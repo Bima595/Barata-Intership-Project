@@ -28,7 +28,7 @@ const statusOptions = [
 ];
 
 const DeviceInputForm = ({ open, onClose }) => {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     nomor_aset: '',
     jenis: '',
     nama: '',
@@ -45,7 +45,9 @@ const DeviceInputForm = ({ open, onClose }) => {
     mac: '',
     foto: [],
     deskripsi: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -59,7 +61,7 @@ const DeviceInputForm = ({ open, onClose }) => {
     const files = Array.from(e.target.files);
     setFormData((prevFormData) => ({
       ...prevFormData,
-      foto: files,
+      foto: [...prevFormData.foto, ...files],
     }));
   };
 
@@ -68,6 +70,15 @@ const DeviceInputForm = ({ open, onClose }) => {
       ...formData,
       foto: formData.foto.filter((_, i) => i !== index),
     });
+  };
+
+  const resetForm = () => {
+    setFormData(initialFormData);
+  };
+
+  const handleClose = () => {
+    resetForm();  // Reset form data when the dialog is closed
+    onClose();
   };
 
   const handleSubmit = async () => {
@@ -99,12 +110,12 @@ const DeviceInputForm = ({ open, onClose }) => {
       console.error('There was an error submitting the form!', error);
       alert('Submission failed. Please try again.');
     } finally {
-      onClose();
+      handleClose(); // Close and reset form after submission
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>Input Device Details</DialogTitle>
       <DialogContent>
         <Grid container spacing={2}>
@@ -209,7 +220,7 @@ const DeviceInputForm = ({ open, onClose }) => {
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={handleClose}>Cancel</Button>
         <Button onClick={handleSubmit} variant="contained" color="primary">Submit</Button>
       </DialogActions>
     </Dialog>

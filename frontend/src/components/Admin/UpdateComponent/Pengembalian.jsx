@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Alert, Checkbox, IconButton,
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import CancelIcon from '@mui/icons-material/Cancel';
+import PropTypes from 'prop-types';
 
 const Pengembalian = ({ open, handleClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,5 +244,11 @@ const Pengembalian = ({ open, handleClose }) => {
     </Dialog>
   );
 };
+
+Pengembalian.propTypes = {
+  open: PropTypes.bool.isRequired,
+  handleClose: PropTypes.func.isRequired,
+};
+
 
 export default Pengembalian;
