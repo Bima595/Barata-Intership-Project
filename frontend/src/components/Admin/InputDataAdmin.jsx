@@ -22,7 +22,6 @@ const FormComponent = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form Data Submitted:', formData);
-    // Add your database insertion logic here
   };
 
   return (

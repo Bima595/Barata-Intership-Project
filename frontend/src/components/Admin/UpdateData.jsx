@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import UpdateComputers from './UpdateComponent/UpdateComputers'; 
 import Pinjam from './UpdateComponent/Pinjam'; 
-import Pengembalian from './UpdateComponent/Pengembalian'; 
+import PengembalianKantor from './UpdateComponent/PengembalianKantor'; 
 import UpdateKaryawan from './UpdateComponent/UpdateKaryawan';
+import SerahTerimaAset from './UpdateComponent/SerahTerimaAset';
+import DeleteComputers from './UpdateComponent/DeleteComputers';
 
 const UpdateData = () => {
   const [visibleDialog, setVisibleDialog] = useState('');
@@ -42,9 +44,21 @@ const UpdateData = () => {
           </button>
           <button
             className="bg-gray-100 text-gray-800 p-4 rounded-lg shadow-md hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-            onClick={() => handleUpdate('Pengembalian')}
+            onClick={() => handleUpdate('DeleteComputers')}
           >
-            Pengembalian Aset
+            Delete Komputer
+          </button>
+          <button
+            className="bg-gray-100 text-gray-800 p-4 rounded-lg shadow-md hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            onClick={() => handleUpdate('PengembalianKantor')}
+          >
+            Pengembalian Aset Kantor
+          </button>
+          <button
+            className="bg-gray-100 text-gray-800 p-4 rounded-lg shadow-md hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            onClick={() => handleUpdate('SerahTerimaAset')}
+          >
+            Serah Terima Aset
           </button>
         </div>
       </div>
@@ -61,8 +75,16 @@ const UpdateData = () => {
         open={visibleDialog === 'Pinjam'}
         handleClose={closeDialog}
       />
-      <Pengembalian
-        open={visibleDialog === 'Pengembalian'}
+      <DeleteComputers
+        open={visibleDialog === 'DeleteComputers'}
+        handleClose={closeDialog}
+      />
+      <PengembalianKantor
+        open={visibleDialog === 'PengembalianKantor'}
+        handleClose={closeDialog}
+      />
+      <SerahTerimaAset
+        open={visibleDialog === 'SerahTerimaAset'}
         handleClose={closeDialog}
       />
 
