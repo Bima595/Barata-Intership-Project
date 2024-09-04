@@ -82,7 +82,7 @@ const UpdateKaryawan = ({ open, handleClose }) => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/pengguna/${formData.npk}`, {
+      const response = await fetch(`http://localhost:5000/update-pengguna/${formData.npk}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

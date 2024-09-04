@@ -272,6 +272,47 @@ app.get('/pengguna/:npk', (req, res) => {
   });
 });
 
+// Update pengguna
+app.put('/update-pengguna/:npk', (req, res) => {
+  const npk = req.params.npk;
+
+  const updatedData = {
+    nama: req.body.nama,
+    jabatan: req.body.jabatan,
+    unit_organisasi: req.body.unit_organisasi,
+  };
+
+  const updateQuery = `
+    UPDATE pengguna 
+    SET nama = ?, jabatan = ?, unit_organisasi = ?, waktu_diubah = NOW()
+    WHERE npk = ?
+  `;
+
+  const values = [
+    updatedData.nama,
+    updatedData.jabatan,
+    updatedData.unit_organisasi,
+    npk,
+  ];
+
+  db.query(updateQuery, values, (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).send('Database query error');
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).send('Pengguna tidak ditemukan');
+    }
+
+    res.json({
+      success: true,
+      message: 'Data pengguna berhasil diperbarui',
+      data: results,
+    });
+  });
+});
+
 // Mencari NPK (Karyawan), dan Nomor_aset / Serial_number (device)
 app.get('/pengembalian/:identifier', (req, res) => {
   const identifier = req.params.identifier;
@@ -1151,10 +1192,6 @@ app.delete('/delete-computers/:nomor_aset', (req, res) => {
           message: 'Cannot delete computer; it is currently borrowed',
         });
       }
-
-      // Step 3: Proceed to delete from both tb_komputer and aset
-      //const deleteKomputerQuery = 'DELETE FROM tb_komputer WHERE nomor_aset = ?';
-      //const deleteAsetQuery = 'DELETE FROM aset WHERE aset_id = ?';
 
       // Start a transaction
       db.beginTransaction((err) => {
