@@ -33,29 +33,13 @@ Backend
   cd backend
   npm install 
 ```
-To open apllications Frontend
+To Run apllications Frontend
 
 ```bash
   npm run dev
 ```
-To open apllications Backend
+To Run apllications Backend
 ```bash
   Node App.js
 ``` 
-## Running Tests
-
-To run tests, run the following command
-
-```bash
-  npm run e2e
-```
-
-
-## Deployment
-
-To deploy this project 
-
-```bash
-  npm run build
-```
 
