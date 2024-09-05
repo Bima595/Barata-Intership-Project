@@ -27,7 +27,6 @@ const Navbar = () => {
         <div className="text-xl font-bold" style={{ color: "#29166F" }}>OfficeTech.</div>
         <div className="hidden md:flex space-x-4">
           <Link to="/" className="hover:underline">Home</Link>
-          <Link to="#DeviceKantor" className="hover:underline">Data Table</Link>
           {!isAdminPage && (
             <Link to="/input" className="hover:underline">Input</Link>
           )}
@@ -48,7 +47,6 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden bg-gray-100 py-4 px-6">
           <Link to="/" className="block py-2 hover:underline">Home</Link>
-          <Link to="#DeviceKantor" className="block py-2 hover:underline">Data Table</Link>
           {!isAdminPage && (
             <Link to="/input" className="block py-2 hover:underline">Input</Link>
           )}

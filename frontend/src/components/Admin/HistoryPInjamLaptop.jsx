@@ -5,8 +5,10 @@ import axios from 'axios';
 
 const HistoryPinjamLaptop = ({ nomorAset }) => {
   const [historyData, setHistoryData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
   const observers = useRef([]);
+  const itemsPerPage = 10;
 
   const fetchHistory = async () => {
     try {
@@ -15,9 +17,9 @@ const HistoryPinjamLaptop = ({ nomorAset }) => {
         setHistoryData(response.data.data || []);
         setErrorMessage('');
       } else {
-        console.warn('Data history Belum ada karna belum pernah di pinjam');
+        console.warn('Data history belum ada karna belum pernah dipinjam');
         setHistoryData([]);
-        setErrorMessage('Data history Belum ada karna belum pernah di pinjam');
+        setErrorMessage('Data history belum ada karna belum pernah dipinjam');
       }
     } catch (error) {
       if (error.response && error.response.status === 404) {
@@ -64,16 +66,24 @@ const HistoryPinjamLaptop = ({ nomorAset }) => {
     });
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(historyData.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = historyData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
-    <div className="mt-6 px-4 sm:px-8 md:px-16 lg:px-32">
+    <div className="mt-10 px-4 sm:px-8 md:px-16 lg:px-32">
       <h1 className="text-xl sm:text-2xl font-bold mb-6">History Pinjam Laptop</h1>
       <div className="relative ml-6">
         <div className="absolute top-0 bottom-0 w-1 bg-black left-0"></div>
 
         {errorMessage ? (
           <p className="ml-8 text-lg font-semibold text-gray-500">{errorMessage}</p>
-        ) : historyData.length > 0 ? (
-          historyData.map((entry, index) => (
+        ) : currentItems.length > 0 ? (
+          currentItems.map((entry, index) => (
             <div
               key={index}
               ref={observeEntry}
@@ -91,6 +101,36 @@ const HistoryPinjamLaptop = ({ nomorAset }) => {
           ))
         ) : (
           <p className="ml-8 text-lg font-semibold text-gray-500">Device belum pernah dipinjam</p>
+        )}
+
+        {historyData.length > itemsPerPage && (
+          <div className="flex justify-center mt-4">
+            <nav className="inline-flex shadow-sm">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border rounded-l bg-gray-200 hover:bg-gray-300"
+              >
+                &lt;
+              </button>
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => paginate(i + 1)}
+                  className={`px-3 py-1 border ${currentPage === i + 1 ? 'bg-gray-300' : 'bg-gray-200 hover:bg-gray-300'}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 border rounded-r bg-gray-200 hover:bg-gray-300"
+              >
+                &gt;
+              </button>
+            </nav>
+          </div>
         )}
 
         {historyData.length > 0 && (

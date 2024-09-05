@@ -776,7 +776,7 @@ app.get('/history/:nomor_aset/rusak', (req, res) => {
   const { nomor_aset } = req.params;
 
   const getHistoryQuery = `
-      SELECT h.deskripsi, h.waktu
+      SELECT IFNULL(h.deskripsi, 'Aset Device Tidak ada kerusakan') AS deskripsi, h.waktu
       FROM history h
       JOIN peminjam p ON h.peminjam_id = p.peminjam_id
       JOIN aset a ON p.aset_id = a.aset_id
